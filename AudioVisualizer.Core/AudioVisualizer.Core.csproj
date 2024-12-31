@@ -4,7 +4,42 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- 必要信息 -->
+    <PackageId>StarFlare.AudioVisualizer.Core</PackageId>
+    <!-- 版本号 -->
+    <Version>1.0.0</Version>
+    <!-- 作者信息 -->
+    <Authors>StarFlare</Authors>
+    <!-- 公司信息 -->
+    <Company>StarFlare</Company>
+    <!-- 描述信息 -->
+    <Description></Description>
+   
+    <Copyright>Copyright © StarFlare 2024</Copyright>
+
+    <!-- 是否生成 NuGet 包 -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- 包输出路径 -->
+    <PackageOutputPath>..\NuGetPackages</PackageOutputPath>
+
+    <!-- README 和 LICENSE -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <Title>Audio Visualizer</Title>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jackLi-123/AudioVisualizer/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="docs\LICENSE.md" Pack="true" PackagePath="\">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="docs\README.md" Pack="true" PackagePath="\">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FftSharp" Version="1.1.6" />

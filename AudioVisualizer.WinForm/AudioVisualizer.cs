@@ -1,8 +1,4 @@
 ﻿using AudioVisualizer.Core;
-using NAudio.CoreAudioApi;
-using NAudio.Wave;
-using SharpDX;
-
 //using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;
@@ -42,7 +38,7 @@ namespace AudioVisualizer.WinForm
 
         public float Scale { get; set; } = 1;
 
-        public int DrawingInterval
+        public int RenderInterval
         {
 
             get { return dataTimer.Interval; }

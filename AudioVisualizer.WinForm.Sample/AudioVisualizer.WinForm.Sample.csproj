@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AudioVisualizer.Core\AudioVisualizer.Core.csproj" />
     <ProjectReference Include="..\AudioVisualizer.WinForm\AudioVisualizer.WinForm.csproj" />
   </ItemGroup>
 

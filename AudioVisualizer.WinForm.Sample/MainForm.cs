@@ -33,7 +33,7 @@ namespace AudioVisualizer.WinForm.Sample
             capture.StartRecording();
 
             audioVisualizer1.Scale = 5;
-            audioVisualizer1.VisualEffict = VisualEffict.SpectrumCycle;
+            audioVisualizer1.VisualEffict = VisualEffict.SpectrumBar;
             audioVisualizer1.Start();
         }
 
