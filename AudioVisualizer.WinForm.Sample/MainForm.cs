@@ -16,7 +16,8 @@ namespace AudioVisualizer.WinForm.Sample
 {
     public partial class MainForm : Form
     {
-        WasapiCapture capture;             // 音频捕获
+        private WasapiCapture capture;
+        private WaveInEvent speechWaveIn;
         public MainForm()
         {
             InitializeComponent();
@@ -24,17 +25,27 @@ namespace AudioVisualizer.WinForm.Sample
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            capture = new WasapiLoopbackCapture();          // 捕获电脑发出的声音
-            capture.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(8192, 1);      // 指定捕获的格式, 单声道, 32位深度, IeeeFloat 编码, 8192采样率
-            capture.DataAvailable += Capture_DataAvailable;                          // 订阅事件
+            // Speaker voice capture, Specify capture wave format: mono, 32-bit depth, IeeeFloat encoding, 8192 sample rate.
+            capture = new WasapiLoopbackCapture()
+            {
+                WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(8192, 1)
+            };
+            capture.DataAvailable += Capture_DataAvailable;
+
+            // Mic speech capture 
+            speechWaveIn = new WaveInEvent
+            {
+                WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(8192, 1)
+            };
+            speechWaveIn.DataAvailable += Capture_DataAvailable;
 
             audioVisualizer1.AudioSampleRate = capture.WaveFormat.SampleRate;
-
-            capture.StartRecording();
-
             audioVisualizer1.Scale = 5;
             audioVisualizer1.VisualEffict = VisualEffict.SpectrumBar;
+
             audioVisualizer1.Start();
+            capture.StartRecording();
+            speechWaveIn.StartRecording();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -57,6 +68,11 @@ namespace AudioVisualizer.WinForm.Sample
                 result[i] = BitConverter.ToSingle(e.Buffer, i * 4);      // 取出采样值
 
             audioVisualizer1.PushSampleData(result);          // 将新的采样存储到 可视化器 中
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
