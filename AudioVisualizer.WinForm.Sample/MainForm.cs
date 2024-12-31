@@ -2,14 +2,6 @@
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AudioVisualizer.WinForm.Sample
@@ -55,24 +47,20 @@ namespace AudioVisualizer.WinForm.Sample
         }
 
         /// <summary>
-        /// 当捕获有数据的时候, 就怼到可视化器里面
+        /// Push audio micophone data into visualizer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Capture_DataAvailable(object? sender, WaveInEventArgs e)
         {
-            int length = e.BytesRecorded / 4;           // 采样的数量 (每一个采样是 4 字节)
-            double[] result = new double[length];       // 声明结果
+            int length = e.BytesRecorded / 4;           // Float data
+            double[] result = new double[length];
 
             for (int i = 0; i < length; i++)
-                result[i] = BitConverter.ToSingle(e.Buffer, i * 4);      // 取出采样值
+                result[i] = BitConverter.ToSingle(e.Buffer, i * 4);
 
-            audioVisualizer1.PushSampleData(result);          // 将新的采样存储到 可视化器 中
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
+            // Push into visualizer
+            audioVisualizer1.PushSampleData(result);
         }
     }
 }
