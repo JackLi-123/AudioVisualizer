@@ -1,2 +1,2 @@
 # AudioVisualizer
-Audio Visualizer  
+Audio Visualizer 
