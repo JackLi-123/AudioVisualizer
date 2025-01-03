@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AudioVisualizer.Core
 {
-    public enum VisualEffict 
+    public enum VisualEffect 
     {
         Oscilloscope,
         SpectrumBar,

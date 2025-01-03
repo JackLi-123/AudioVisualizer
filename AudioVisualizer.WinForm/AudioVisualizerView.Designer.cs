@@ -1,6 +1,6 @@
 ﻿namespace AudioVisualizer.WinForm
 {
-    partial class AudioVisualizer
+    partial class AudioVisualizerView
     {
         /// <summary> 
         /// Required designer variable.

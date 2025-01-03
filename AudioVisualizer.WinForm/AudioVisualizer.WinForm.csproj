@@ -9,7 +9,7 @@
     <!-- 必要信息 -->
     <PackageId>StarFlare.AudioVisualizer.WinForm</PackageId>
     <!-- 版本号 -->
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <!-- 作者信息 -->
     <Authors>StarFlare</Authors>
     <!-- 公司信息 -->
@@ -31,6 +31,8 @@
     <RepositoryUrl>https://github.com/jackLi-123/AudioVisualizer/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <AssemblyName>StarFlare.AudioVisualizer.WinForm</AssemblyName>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
     
   </PropertyGroup>
 

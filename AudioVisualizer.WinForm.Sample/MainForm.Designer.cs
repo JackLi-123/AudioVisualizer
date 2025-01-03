@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            audioVisualizer1 = new AudioVisualizer();
+            audioVisualizer1 = new AudioVisualizerView();
             label1 = new System.Windows.Forms.Label();
             SuspendLayout();
             // 
@@ -43,11 +43,12 @@
             audioVisualizer1.Scale = 1F;
             audioVisualizer1.Size = new System.Drawing.Size(800, 450);
             audioVisualizer1.TabIndex = 0;
+            audioVisualizer1.VisualEffict = AudioVisualizer.Core.VisualEffict.Oscilloscope;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(13, 9);
+            label1.Location = new System.Drawing.Point(12, 9);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(248, 15);
             label1.TabIndex = 1;
@@ -70,7 +71,7 @@
 
         #endregion
 
-        private AudioVisualizer audioVisualizer1;
+        private AudioVisualizerView audioVisualizer1;
         private System.Windows.Forms.Label label1;
     }
 }

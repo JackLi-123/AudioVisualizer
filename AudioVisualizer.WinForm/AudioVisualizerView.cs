@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -14,7 +15,7 @@ using System.Windows.Forms;
 
 namespace AudioVisualizer.WinForm
 {
-    public partial class AudioVisualizer : UserControl
+    public partial class AudioVisualizerView : UserControl
     {
         private bool started = false;
         private Timer dataTimer = new Timer();
@@ -30,7 +31,7 @@ namespace AudioVisualizer.WinForm
 
         Color[] allColors;                 // 渐变颜色
 
-        public AudioVisualizer()
+        public AudioVisualizerView()
         {
             InitializeComponent();
         }
@@ -59,17 +60,19 @@ namespace AudioVisualizer.WinForm
         private void AudioVisualizer_Load(object sender, EventArgs e)
         {
             this.BackColor = Color.Black;
-            visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
+            if (!IsInDesignMode())
+            {
+                visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
 
-            allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
+                allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
 
 
-            dataTimer.Interval = 50;
-            dataTimer.Tick += new System.EventHandler(this.DataTimer_Tick);
+                dataTimer.Interval = 50;
+                dataTimer.Tick += new System.EventHandler(this.DataTimer_Tick);
 
-            drawingTimer.Interval = 50;
-            drawingTimer.Tick += new System.EventHandler(this.DrawingTimer_Tick);
-
+                drawingTimer.Interval = 50;
+                drawingTimer.Tick += new System.EventHandler(this.DrawingTimer_Tick);
+            }
         }
 
         public void Start()
@@ -194,11 +197,11 @@ namespace AudioVisualizer.WinForm
                     DrawGradientBorder(g, Color.FromArgb(0, color1), color2, border, bassScale * this.Scale, this.Width / 10);
                     break;
             }
-            
-            
-            
 
-            
+
+
+
+
 
             buffer.Render();
 
@@ -274,7 +277,7 @@ namespace AudioVisualizer.WinForm
             if (downP < yOffset)
                 downP = yOffset;
 
-      
+
             g.DrawLine(new Pen(down), new PointF(0, yOffset), new PointF(drawingWidth, yOffset));
             if (Math.Abs(upP - downP) < 1)
                 return;
@@ -294,7 +297,7 @@ namespace AudioVisualizer.WinForm
 
                 g.FillRectangle(brush, new RectangleF(p.X, y, stripWidth, height));
             }
-            
+
         }
 
         /// <summary>
@@ -435,7 +438,7 @@ namespace AudioVisualizer.WinForm
             }
 
             // TODO Draw cycle
-       
+
         }
 
         /// <summary>
@@ -514,7 +517,21 @@ namespace AudioVisualizer.WinForm
         }
 
 
-       
+        private  static bool IsInDesignMode()
+        {
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return true;
+            }
+
+            string processName = Process.GetCurrentProcess().ProcessName.ToLower();
+            if (processName.Contains("devenv") || processName.Contains("blend"))
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         //private void MainWindow_Load(object sender, EventArgs e)
         //{
