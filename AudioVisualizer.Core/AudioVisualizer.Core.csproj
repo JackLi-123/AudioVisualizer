@@ -13,7 +13,7 @@
    
     <Copyright>Copyright © StarFlare 2024</Copyright>
 
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\NuGetPackages</PackageOutputPath>
 
     <!-- README and LICENSE -->

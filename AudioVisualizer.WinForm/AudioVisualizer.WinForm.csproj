@@ -6,33 +6,26 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
 
-    <!-- 必要信息 -->
     <PackageId>StarFlare.AudioVisualizer.WinForm</PackageId>
-    <!-- 版本号 -->
-    <Version>1.0.1</Version>
-    <!-- 作者信息 -->
+    <Version>1.0.2</Version>
     <Authors>StarFlare</Authors>
-    <!-- 公司信息 -->
     <Company>StarFlare</Company>
-    <!-- 描述信息 -->
     <Description></Description>
 
     <Copyright>Copyright © StarFlare 2024</Copyright>
 
-    <!-- 是否生成 NuGet 包 -->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <!-- 包输出路径 -->
     <PackageOutputPath>..\NuGetPackages</PackageOutputPath>
 
-    <!-- README 和 LICENSE -->
+    <!-- README and LICENSE -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <Title>Audio Visualizer WinForm</Title>
     <RepositoryUrl>https://github.com/jackLi-123/AudioVisualizer/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <AssemblyName>StarFlare.AudioVisualizer.WinForm</AssemblyName>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
     
   </PropertyGroup>
 
