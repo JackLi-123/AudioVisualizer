@@ -1,4 +1,4 @@
-﻿using AudioVisualizer.Core;
+﻿using AudioVisualizer.Core.Enum;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using System;

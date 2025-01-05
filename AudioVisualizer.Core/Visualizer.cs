@@ -24,7 +24,7 @@ namespace AudioVisualizer.Core
         {
             get => _size; set
             {
-                if (!(Get2Flag(value)))
+                if (!Get2Flag(value))
                     throw new ArgumentException("长度必须是 2 的 n 次幂");
 
                 _size = value;
@@ -37,7 +37,7 @@ namespace AudioVisualizer.Core
 
         public Visualizer(int size)
         {
-            if (!(Get2Flag(size)))
+            if (!Get2Flag(size))
                 throw new ArgumentException("大小必须是 2 的 n 次幂", nameof(size));
 
             _lastTime = DateTime.Now;
@@ -125,7 +125,7 @@ namespace AudioVisualizer.Core
         {
             double frequencyPerSampe = sampleRate / spectrum.Length;
 
-            int lengthInNeed = (int)(Math.Min(frequency / frequencyPerSampe, spectrum.Length));
+            int lengthInNeed = (int)Math.Min(frequency / frequencyPerSampe, spectrum.Length);
             double[] result = new double[lengthInNeed];
             Array.Copy(spectrum, 0, result, 0, lengthInNeed);
             return result;
@@ -141,11 +141,11 @@ namespace AudioVisualizer.Core
         {
             double[] GetWeights(int radius)
             {
-                double Gaussian(double x) => Math.Pow(Math.E, (-4 * x * x));        // 憨批高斯函数
+                double Gaussian(double x) => Math.Pow(Math.E, -4 * x * x);        // 憨批高斯函数
 
                 int len = 1 + radius * 2;                         // 长度
                 int end = len - 1;                                // 最后的索引
-                double radiusF = (double)radius;                    // 半径浮点数
+                double radiusF = radius;                    // 半径浮点数
                 double[] weights = new double[len];                 // 权重
 
                 for (int i = 0; i <= radius; i++)                 // 先把右边的权重算出来

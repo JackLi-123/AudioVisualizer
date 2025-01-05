@@ -1,4 +1,6 @@
-﻿namespace AudioVisualizer.WinForm.Sample
+﻿using AudioVisualizer.Core.Enum;
+
+namespace AudioVisualizer.WinForm.Sample
 {
     partial class MainForm
     {
@@ -43,7 +45,7 @@
             audioVisualizer1.Scale = 1F;
             audioVisualizer1.Size = new System.Drawing.Size(800, 450);
             audioVisualizer1.TabIndex = 0;
-            audioVisualizer1.VisualEffect = AudioVisualizer.Core.VisualEffect.Oscilloscope;
+            audioVisualizer1.VisualEffect = VisualEffect.Oscilloscope;
             // 
             // label1
             // 
