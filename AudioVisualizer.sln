@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.Core", "AudioVisualizer.Core\AudioVisualizer.Core.csproj", "{15A2D4B9-BD52-411F-96E9-2BFACFEC4579}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F54E0AE6-96AB-42EA-AFD1-37F1BCBAD304}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WinForm", "AudioVisualizer.WinForm\AudioVisualizer.WinForm.csproj", "{4398D445-4BE7-4671-83C1-BA7320BEF1EE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WinForm.Sample", "AudioVisualizer.WinForm.Sample\AudioVisualizer.WinForm.Sample.csproj", "{9A99F14F-1C25-44B0-833E-47441CEC2D01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15A2D4B9-BD52-411F-96E9-2BFACFEC4579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15A2D4B9-BD52-411F-96E9-2BFACFEC4579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15A2D4B9-BD52-411F-96E9-2BFACFEC4579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15A2D4B9-BD52-411F-96E9-2BFACFEC4579}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4398D445-4BE7-4671-83C1-BA7320BEF1EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4398D445-4BE7-4671-83C1-BA7320BEF1EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4398D445-4BE7-4671-83C1-BA7320BEF1EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4398D445-4BE7-4671-83C1-BA7320BEF1EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A99F14F-1C25-44B0-833E-47441CEC2D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A99F14F-1C25-44B0-833E-47441CEC2D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A99F14F-1C25-44B0-833E-47441CEC2D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A99F14F-1C25-44B0-833E-47441CEC2D01}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5339D678-7325-4FD8-A49D-47B54E59D8E6}
+	EndGlobalSection
+EndGlobal
