@@ -44,9 +44,11 @@ this.Controls.Add(audioVisualizer );
             speechWaveIn.StartRecording();
         }
 ```
+### Feature Demonstration
+![img](res/code.png)
+![img](res/preview1.png)
+![img](res/preview2.png)
 
 ## **License**
 
 Licensed under the [MIT](LICENSE) License.
- 
-  
