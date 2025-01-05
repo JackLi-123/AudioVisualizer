@@ -48,4 +48,4 @@ this.Controls.Add(audioVisualizer );
 ## **License**
 
 Licensed under the [MIT](LICENSE) License.
-   
+
