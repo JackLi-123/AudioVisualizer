@@ -1,4 +1,6 @@
 ﻿using AudioVisualizer.Core;
+using AudioVisualizer.Core.Enum;
+
 //using SharpDX.Direct2D1;
 using System;
 using System.Collections.Generic;

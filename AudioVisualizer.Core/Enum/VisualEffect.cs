@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AudioVisualizer.Core
+namespace AudioVisualizer.Core.Enum
 {
-    public enum VisualEffect 
+    public enum VisualEffect
     {
         Oscilloscope,
         SpectrumBar,
