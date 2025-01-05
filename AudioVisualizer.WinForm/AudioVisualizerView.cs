@@ -50,7 +50,7 @@ namespace AudioVisualizer.WinForm
             }
         }
 
-        public VisualEffict VisualEffict { get; set; }
+        public VisualEffect VisualEffect { get; set; }
 
         public void PushSampleData(double[] waveData)
         {
@@ -181,15 +181,15 @@ namespace AudioVisualizer.WinForm
             g.SmoothingMode = SmoothingMode.HighQuality;          // 嗨嗨害, 那必须得是高质量绘图
             g.Clear(this.BackColor);
 
-            switch (VisualEffict)
+            switch (this.VisualEffect)
             {
-                case VisualEffict.Oscilloscope:
+                case VisualEffect.Oscilloscope:
                     DrawCurve(g, pen, visualizer.SampleData, visualizer.SampleData.Length, this.Width, 0, this.Height / 2, MathF.Min(this.Height / 10, 100) * Scale);
                     break;
-                case VisualEffict.SpectrumBar:
+                case VisualEffect.SpectrumBar:
                     DrawGradientBar(g, color1, color2, spectrumData, spectrumData.Length, this.Width, 0, this.Height / 2, 3, -this.Height * 10 * this.Scale);
                     break;
-                case VisualEffict.SpectrumCycle:
+                case VisualEffect.SpectrumCycle:
                     DrawGradientCircle(g, color1, color2, spectrumData, spectrumData.Length, this.Width / 2, this.Height / 2, MathF.Min(this.Width, this.Height) / 4 + extraScale * bassScale, 1, rotation, this.Width / 2 * 10 * Scale);
                     break;
                 default:
