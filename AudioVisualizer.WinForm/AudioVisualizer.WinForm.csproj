@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
 
     <PackageId>StarFlare.AudioVisualizer.WinForm</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.0</Version>
     <Authors>StarFlare</Authors>
     <Company>StarFlare</Company>
     <Description></Description>
@@ -24,8 +24,10 @@
     <RepositoryUrl>https://github.com/jackLi-123/AudioVisualizer/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <AssemblyName>StarFlare.AudioVisualizer.WinForm</AssemblyName>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Product>StarFlare.AudioVisualizer</Product>
+    <PackageProjectUrl>https://github.com/jackLi-123/AudioVisualizer/</PackageProjectUrl>
     
   </PropertyGroup>
 
@@ -39,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StarFlare.AudioVisualizer.Core" Version="1.0.0" />
+    <ProjectReference Include="..\AudioVisualizer.Core\AudioVisualizer.Core.csproj" />
   </ItemGroup>
 
 </Project>
