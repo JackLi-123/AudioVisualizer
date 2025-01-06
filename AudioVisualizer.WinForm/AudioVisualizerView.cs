@@ -193,6 +193,7 @@ namespace AudioVisualizer.WinForm
                     break;
                 case VisualEffect.SpectrumCycle:
                     DrawGradientCircle(g, color1, color2, spectrumData, spectrumData.Length, this.Width / 2, this.Height / 2, MathF.Min(this.Width, this.Height) / 4 + extraScale * bassScale, 1, rotation, this.Width / 2 * 10 * Scale);
+                    DrawCycle(g, color1, color2, this.Width, this.Height);
                     break;
                 default:
                     // TODO外框效果
@@ -208,6 +209,25 @@ namespace AudioVisualizer.WinForm
             buffer.Render();
 
             oldBuffer = buffer;                                   // 保存一下 buffer (之所以不全局只使用一个 Buffer 是因为,,, 用户可能调整窗口大小, 所以每一帧都必须适应)
+        }
+
+
+        //绘制一个圆
+        public void DrawCycle(Graphics g, Color down, Color up, int width, int height)
+        {
+            // 计算圆的直径，选择宽高中的较小值，以确保圆形始终是正圆
+            int diameter = Math.Min(width / 2, height / 2);
+
+            // 计算圆心位置
+            int x = (width - diameter) / 2;
+            int y = (height - diameter) / 2;
+
+            // 创建画笔
+            using (Pen pen = new Pen(up, 3))  // 选择你想要的颜色和线条粗细
+            {
+                // 在窗体中绘制空心圆
+                g.DrawEllipse(pen, x, y, diameter, diameter);
+            }
         }
 
         /// <summary>
@@ -519,7 +539,7 @@ namespace AudioVisualizer.WinForm
         }
 
 
-        private  static bool IsInDesignMode()
+        private static bool IsInDesignMode()
         {
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             {
