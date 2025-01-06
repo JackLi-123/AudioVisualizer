@@ -1,4 +1,31 @@
 ## **Getting Started**
+### System Requirements
+
+List the basic environment requirements needed to run the project:
+
+- Operating System: Windows 10 or higher
+- .NET Version: .NET 6.0 or higher
+- 
+### NuGet Package Installation
+To use the Realtime control, you need to install the following NuGet packages:
+
+```bash
+StarFlare.AudioVisualizer.Core
+StarFlare.AudioVisualizer.WinForm
+StarFlare.AudioVisualizer.WPF (Comming Soon)
+```
+
+You can install these packages by running the following commands in the **NuGet Package Manager Console**:
+
+```bash
+Install-Package StarFlare.AudioVisualizer.Core
+Install-Package StarFlare.AudioVisualizer.WinForm
+Install-Package StarFlare.AudioVisualizer.WPF (Comming Soon)
+```
+
+Alternatively, you can add them via the **Package Manager UI** by searching for each package.
+
+### Usage
 
 ### **Step 1: Import the Core and WinForms SDK**
 
@@ -44,6 +71,14 @@ this.Controls.Add(audioVisualizer );
             speechWaveIn.StartRecording();
         }
 ```
+
+![Code](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/code.png)
+![Sample 1](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/preview1.png)
+![Sample 2](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/preview2.png)
+
+
+
+
 
 ## **License**
 
