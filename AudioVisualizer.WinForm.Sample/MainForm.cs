@@ -1,4 +1,4 @@
-﻿using AudioVisualizer.Core;
+﻿using AudioVisualizer.Core.Enum;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using System;
@@ -33,7 +33,7 @@ namespace AudioVisualizer.WinForm.Sample
 
             audioVisualizer1.AudioSampleRate = capture.WaveFormat.SampleRate;
             audioVisualizer1.Scale = 5;
-            audioVisualizer1.VisualEffict = VisualEffict.SpectrumBar;
+            audioVisualizer1.VisualEffect = VisualEffect.SpectrumBar;
 
             audioVisualizer1.Start();
             capture.StartRecording();
