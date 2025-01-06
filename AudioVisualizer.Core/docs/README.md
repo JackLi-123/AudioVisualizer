@@ -72,9 +72,9 @@ this.Controls.Add(audioVisualizer );
         }
 ```
 
-![Code](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/code.png)
-![Sample 1](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/preview1.png)
-![Sample 2](https://github.com/JackLi-123/AudioVisualizer/blob/main/res/preview2.png)
+![Code](https://raw.githubusercontent.com/JackLi-123/AudioVisualizer/refs/heads/main/res/code.png)
+![Sample 1](https://raw.githubusercontent.com/JackLi-123/AudioVisualizer/refs/heads/main/res/preview1.png)
+![Sample 2](https://raw.githubusercontent.com/JackLi-123/AudioVisualizer/refs/heads/main/res/preview2.png)
 
 
 
