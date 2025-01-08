@@ -8,7 +8,12 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
+using System.Windows.Shapes;
 using System.Windows.Threading;
+using static System.Formats.Asn1.AsnWriter;
 using Color = System.Drawing.Color;
 using Point = System.Windows.Point;
 
@@ -26,10 +31,23 @@ namespace AudioVisualizer.WPF
         private DispatcherTimer drawingTimer;
 
         Visualizer visualizer;          // 可视化
+        double[]? spectrumData;            // 频谱数据
+
         Color[] allColors;                 // 渐变颜色
+
+        private int colorIndex = 0;
+        private double rotation = 0;
+
         public AudioVisualizerView()
         {
             InitializeComponent();
+
+            if (!IsInDesignMode())
+            {
+                visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
+                allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
+
+            }
         }
 
         public int AudioSampleRate { get; set; } = 8192;
@@ -40,17 +58,7 @@ namespace AudioVisualizer.WPF
 
         public void PushSampleData(double[] waveData)
         {
-            if (visualizer != null)
-            {
-                visualizer.PushSampleData(waveData);
-                // 更新音频数据，并触发绘制
-                _sampleData = waveData.Select(d => Math.Abs((float)d)).ToList();
-                // 使用 Dispatcher 在 UI 线程中调用 InvalidateVisual
-                Application.Current?.Dispatcher.Invoke(() =>
-                {
-                    AudioVisualizerCanvas.InvalidateVisual();
-                });
-            }
+            visualizer.PushSampleData(waveData);
         }
 
         public void Start()
@@ -67,20 +75,25 @@ namespace AudioVisualizer.WPF
                 dataTimer.Interval = TimeSpan.FromMilliseconds(50);  // 每50毫秒更新一次
                 dataTimer.Tick += (sender, args) =>
                 {
-                    // 模拟音频数据的实时推送
-                    // 这里你可以通过从音频源获取数据，模拟推送数据到可视化器
-                    // visualizer.PushSampleData(newData);
-                    //_sampleData = visualizer.GetSampleData();
-                    this.InvalidateVisual();
+                    double[] newSpectrumData = visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
+                    newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // 平滑频谱数据
+
+                    spectrumData = newSpectrumData;
                 };
                 dataTimer.Start();
 
                 // 启动绘制定时器
                 drawingTimer = new DispatcherTimer();
-                drawingTimer.Interval = TimeSpan.FromMilliseconds(16);  // 每16毫秒绘制一次，约60fps
+                drawingTimer.Interval = TimeSpan.FromMilliseconds(50);  // 每16毫秒绘制一次，约60fps
                 drawingTimer.Tick += (sender, args) =>
                 {
-                    this.InvalidateVisual();  // 重新绘制
+                    if (spectrumData == null)
+                        return;
+
+                    DrawSoundEffects();
+                    //this.InvalidateVisual();  // 重新绘制
+
+
                 };
                 drawingTimer.Start();
 
@@ -96,6 +109,24 @@ namespace AudioVisualizer.WPF
                 // 停止定时器
                 dataTimer?.Stop();
                 drawingTimer?.Stop();
+            }
+        }
+        public void DrawSoundEffects() 
+        {
+            var audioBuffer = spectrumData;
+            switch (VisualEffict)
+            {
+                case Core.VisualEffect.SpectrumCycle:
+                    spectrumBarFormCanvas.Visibility = Visibility.Collapsed;
+                    Dispatcher.Invoke((Delegate)(() => cycleWaveformCanvas.UpdateAudioData(audioBuffer)));
+                    break;
+
+                case Core.VisualEffect.SpectrumBar:
+                    cycleWaveformCanvas.Visibility = Visibility.Collapsed;
+                    Dispatcher.Invoke((Delegate)(() => spectrumBarFormCanvas.UpdateAudioData(audioBuffer)));
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -118,45 +149,89 @@ namespace AudioVisualizer.WPF
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!IsInDesignMode())
-            {
-                visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
-                allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
 
-            }
+            DrawDefaultVisualEffect(VisualEffict);
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
+        private void DrawDefaultVisualEffect(VisualEffect effect)
         {
-            base.OnRender(drawingContext);
+            cycleWaveformCanvas.Children.Clear();
+            spectrumBarFormCanvas.Children.Clear();
 
-            if (_sampleData.Count == 0)
-                return;
-
-            var width = AudioVisualizerCanvas.ActualWidth;
-            var height = AudioVisualizerCanvas.ActualHeight;
-            var maxSampleValue = 1f;  // 假设最大频谱值为1
-
-            // 创建渐变画刷
-            var gradientBrush = new LinearGradientBrush(
-                Colors.Blue, Colors.Cyan, 45);
-
-            // 根据当前的视觉效果选择绘制方式
-            switch (VisualEffict)
+            switch (effect)
             {
-                //case Core.VisualEffect.Oscilloscope:
-                //    DrawOscilloscope(drawingContext, width, height, maxSampleValue, gradientBrush);
-                //    break;
+                case Core.VisualEffect.SpectrumCycle:
+                    DrawCircle();
+                    break;
 
                 case Core.VisualEffect.SpectrumBar:
-                    DrawSpectrumBar(drawingContext, width, height, maxSampleValue, gradientBrush);
+                    DrawLine();
                     break;
-
-                case Core.VisualEffect.SpectrumCycle:
-                    DrawSpectrumCycle(drawingContext, width, height, maxSampleValue, gradientBrush);
+                default:
                     break;
             }
         }
+
+        private void DrawCircle(double sizeFactor = 0.6)
+        {
+            double canvasWidth = cycleWaveformCanvas.ActualWidth;
+            double canvasHeight = cycleWaveformCanvas.ActualHeight;
+            if (canvasWidth == 0 || canvasHeight == 0)
+                return;
+
+            double radius = Math.Min(canvasWidth, canvasHeight) * sizeFactor / 2;
+            double centerX = canvasWidth / 2;
+            double centerY = canvasHeight / 2;
+
+            Ellipse circle = new Ellipse
+            {
+                Width = radius * 2,
+                Height = radius * 2,
+                Stroke = Brushes.LimeGreen,
+                StrokeThickness = 3
+            };
+
+            Canvas.SetLeft(circle, centerX - radius);
+            Canvas.SetTop(circle, centerY - radius);
+
+            cycleWaveformCanvas.Children.Clear();
+
+            cycleWaveformCanvas.Children.Add(circle);
+        }
+
+        private void DrawLine()
+        {
+            double canvasWidth = spectrumBarFormCanvas.ActualWidth;
+            double canvasHeight = spectrumBarFormCanvas.ActualHeight;
+
+            if (canvasWidth == 0 || canvasHeight == 0)
+                return;
+
+
+            LinearGradientBrush gradientBrush = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 0)
+            };
+            gradientBrush.GradientStops.Add(new GradientStop(Colors.Purple, 0.0));
+            gradientBrush.GradientStops.Add(new GradientStop(Colors.Orange, 0.5));
+            gradientBrush.GradientStops.Add(new GradientStop(Colors.Yellow, 1.0));
+
+            Line line = new Line
+            {
+                X1 = 10,
+                Y1 = canvasHeight / 2,
+                X2 = canvasWidth - 10,
+                Y2 = canvasHeight / 2,
+                Stroke = gradientBrush,
+                StrokeThickness = 2
+            };
+
+            spectrumBarFormCanvas.Children.Add(line);
+        }
+
+        
+
 
         /// <summary>
         /// 获取 HSV 中所有的基础颜色 (饱和度和明度均为最大值)
@@ -199,58 +274,14 @@ namespace AudioVisualizer.WPF
             return result;
         }
 
-        //private void DrawOscilloscope(DrawingContext drawingContext, double width, double height, float maxSampleValue, Brush brush)
-        //{
-        //    var halfHeight = height / 2;
-        //    var step = width / _sampleData.Count;
-
-        //    // 绘制波形图
-        //    for (int i = 0; i < _sampleData.Count; i++)
-        //    {
-        //        float y = halfHeight - (_sampleData[i] * halfHeight);
-        //        drawingContext.DrawLine(
-        //            new Pen(brush, 1),
-        //            new Point(i * step, halfHeight),
-        //            new Point(i * step, y)
-        //        );
-        //    }
-        //}
-
-        private void DrawSpectrumBar(DrawingContext drawingContext, double width, double height, float maxSampleValue, Brush brush)
+        private void cycleWaveformCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-
-
-            var barWidth = width / _sampleData.Count;// 每个条形的宽度
-            var centerY = height / 2; // 以黑色区域的垂直中心为基准
-            for (int i = 0; i < _sampleData.Count; i++)
-            {
-                if (_sampleData.Count != 0 && _sampleData[i] != 0)
-                {
-                    var barHeight = Math.Abs(_sampleData[i]) * height / 2; // 高度是总高度的一半
-                    var x = i * barWidth; // 每个条形的 X 坐标
-                    var y = centerY - barHeight; // 从中心向上绘制
-
-                    // 绘制矩形条形
-                    drawingContext.DrawRectangle(brush, null, new Rect(x, y, barWidth, barHeight));
-                }
-            }
+            DrawDefaultVisualEffect(VisualEffict);
         }
 
-        private void DrawSpectrumCycle(DrawingContext drawingContext, double width, double height, float maxSampleValue, Brush brush)
+        private void spectrumBarFormCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            var centerX = width / 2;
-            var centerY = height / 2;
-            var radius = Math.Min(width, height) / 3;
-
-            // 绘制环形频谱
-            for (int i = 0; i < _sampleData.Count; i++)
-            {
-                var angle = i * (360.0 / _sampleData.Count);
-                var x = centerX + radius * Math.Cos(angle * Math.PI / 180);
-                var y = centerY + radius * Math.Sin(angle * Math.PI / 180);
-                var size = _sampleData[i] * 10;  // 影响波形的大小
-                drawingContext.DrawEllipse(brush, null, new Point(x, y), size, size);
-            }
+            DrawDefaultVisualEffect(VisualEffict);
         }
     }
 
