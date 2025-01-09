@@ -1,10 +1,15 @@
 using AudioVisualizer.Core;
+using AudioVisualizer.WPF.Utilities;
 using FftSharp;
+using Microsoft.VisualBasic;
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -13,8 +18,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using static System.Formats.Asn1.AsnWriter;
-using Color = System.Drawing.Color;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
 namespace AudioVisualizer.WPF
@@ -27,13 +32,16 @@ namespace AudioVisualizer.WPF
         private bool started = false;
         private List<float> _sampleData = new List<float>();  // 音频数据
 
+        DateTime _startTime;
         private DispatcherTimer dataTimer;
         private DispatcherTimer drawingTimer;
 
-        Visualizer visualizer;          // 可视化
-        double[]? spectrumData;            // 频谱数据
+        Visualizer _visualizer;          // 可视化
+        WasapiCapture _capture;
+        double[]? _spectrumData;            // 频谱数据
 
-        Color[] allColors;                 // 渐变颜色
+        static readonly System.Windows.Media.Color[] allColors =
+             ColorUtils.GetAllHsvColors();           // 渐变颜色
 
         private int colorIndex = 0;
         private double rotation = 0;
@@ -41,13 +49,9 @@ namespace AudioVisualizer.WPF
         public AudioVisualizerView()
         {
             InitializeComponent();
+            _startTime = DateTime.Now;
 
-            if (!IsInDesignMode())
-            {
-                visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
-                allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
-
-            }
+            _visualizer = new Visualizer(512);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
         }
 
         public int AudioSampleRate { get; set; } = 8192;
@@ -58,41 +62,270 @@ namespace AudioVisualizer.WPF
 
         public void PushSampleData(double[] waveData)
         {
-            visualizer.PushSampleData(waveData);
+            _visualizer.PushSampleData(waveData);
         }
+
+        public int SpectrumSize
+        {
+            get { return (int)GetValue(SpectrumSizeProperty); }
+            set { SetValue(SpectrumSizeProperty, value); }
+        }
+
+        public int SpectrumSampleRate
+        {
+            get { return (int)GetValue(SpectrumSampleRateProperty); }
+            set { SetValue(SpectrumSampleRateProperty, value); }
+        }
+
+        public int SpectrumBlurry
+        {
+            get { return (int)GetValue(SpectrumBlurryProperty); }
+            set { SetValue(SpectrumBlurryProperty, value); }
+        }
+
+        public double SpectrumFactor
+        {
+            get { return (double)GetValue(SpectrumFactorProperty); }
+            set { SetValue(SpectrumFactorProperty, value); }
+        }
+
+
+        public float ColorTransitionTime
+        {
+            get { return (float)GetValue(ColorTransitionTimeProperty); }
+            set { SetValue(ColorTransitionTimeProperty, value); }
+        }
+        public float ColorGradientOffset
+        {
+            get { return (float)GetValue(ColorGradientOffsetProperty); }
+            set { SetValue(ColorGradientOffsetProperty, value); }
+        }
+        public int StripCount
+        {
+            get { return (int)GetValue(StripCountProperty); }
+            set { SetValue(StripCountProperty, value); }
+        }
+        public float StripSpacing
+        {
+            get { return (float)GetValue(StripSpacingProperty); }
+            set { SetValue(StripSpacingProperty, value); }
+        }
+
+        public bool IsRendering
+        {
+            get { return (bool)GetValue(IsRenderingProperty.DependencyProperty); }
+            private set { SetValue(IsRenderingProperty, value); }
+        }
+        public bool RenderEnabled
+        {
+            get { return (bool)GetValue(EnableRenderingProperty); }
+            set { SetValue(EnableRenderingProperty, value); }
+        }
+
+        public int RenderInterval
+        {
+            get { return (int)GetValue(RenderIntervalProperty); }
+            set { SetValue(RenderIntervalProperty, value); }
+        }
+
+        public int CircleStripCount
+        {
+            get { return (int)GetValue(CircleStripCountProperty); }
+            set { SetValue(CircleStripCountProperty, value); }
+        }
+        public float CircleStripSpacing
+        {
+            get { return (float)GetValue(CircleStripSpacingProperty); }
+            set { SetValue(CircleStripSpacingProperty, value); }
+        }
+        public double CircleStripRotationSpeed
+        {
+            get { return (double)GetValue(CircleStripRotationSpeedProperty); }
+            set { SetValue(CircleStripRotationSpeedProperty, value); }
+        }
+
+        public bool EnableCurveRendering
+        {
+            get { return (bool)GetValue(EnableCurveProperty); }
+            set { SetValue(EnableCurveProperty, value); }
+        }
+        public bool EnableStripsRendering
+        {
+            get { return (bool)GetValue(EnableStripsProperty); }
+            set { SetValue(EnableStripsProperty, value); }
+        }
+
+        public bool EnableBorderRendering
+        {
+            get { return (bool)GetValue(EnableBorderDrawingProperty); }
+            set { SetValue(EnableBorderDrawingProperty, value); }
+        }
+
+        public bool EnableCircleStripsRendering
+        {
+            get { return (bool)GetValue(EnableCircleStripsRenderingProperty); }
+            set { SetValue(EnableCircleStripsRenderingProperty, value); }
+        }
+
+        public static readonly DependencyProperty EnableCurveProperty =
+            DependencyProperty.Register(nameof(EnableCurveRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableStripsProperty =
+            DependencyProperty.Register(nameof(EnableStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableBorderDrawingProperty =
+            DependencyProperty.Register(nameof(EnableBorderRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableCircleStripsRenderingProperty =
+            DependencyProperty.Register(nameof(EnableCircleStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+
+
+
+
+
+        public static readonly DependencyProperty SpectrumSizeProperty =
+            DependencyProperty.Register(nameof(SpectrumSize), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(512, SpectrumSizeChanged));
+        public static readonly DependencyProperty SpectrumSampleRateProperty =
+            DependencyProperty.Register(nameof(SpectrumSampleRate), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(8192, SpectrumSampleRateChanged));
+        public static readonly DependencyProperty SpectrumBlurryProperty =
+            DependencyProperty.Register(nameof(SpectrumBlurry), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(0));
+        public static readonly DependencyProperty SpectrumFactorProperty =
+            DependencyProperty.Register(nameof(SpectrumFactor), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(1.0));
+        public static readonly DependencyPropertyKey IsRenderingProperty =
+            DependencyProperty.RegisterReadOnly(nameof(IsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false));
+        public static readonly DependencyProperty EnableRenderingProperty =
+            DependencyProperty.Register(nameof(RenderEnabled), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false, RenderEnableChanged));
+        public static readonly DependencyProperty RenderIntervalProperty =
+            DependencyProperty.Register(nameof(RenderInterval), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(10));
+        public static readonly DependencyProperty ColorTransitionTimeProperty =
+            DependencyProperty.Register(nameof(ColorTransitionTime), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(30f));
+        public static readonly DependencyProperty ColorGradientOffsetProperty =
+            DependencyProperty.Register(nameof(ColorGradientOffset), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.1f));
+
+
+
+        public static readonly DependencyProperty StripCountProperty =
+            DependencyProperty.Register(nameof(StripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        public static readonly DependencyProperty StripSpacingProperty =
+            DependencyProperty.Register(nameof(StripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        public static readonly DependencyProperty CircleStripCountProperty =
+            DependencyProperty.Register(nameof(CircleStripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        public static readonly DependencyProperty CircleStripSpacingProperty =
+            DependencyProperty.Register(nameof(CircleStripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        public static readonly DependencyProperty CircleStripRotationSpeedProperty =
+            DependencyProperty.Register(nameof(CircleStripRotationSpeed), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(.5));
+
+        private static void SpectrumSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not AudioVisualizerView audioVisualizerView ||
+                e.NewValue is not int spectrumSize)
+                return;
+
+            if (audioVisualizerView.IsRendering)
+                throw new InvalidOperationException($"{nameof(SpectrumSize)} on only be set while not rendering");
+
+            audioVisualizerView._visualizer.Size = spectrumSize * 2;
+        }
+
+        private static void SpectrumSampleRateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not AudioVisualizerView audioVisualizerView ||
+                e.NewValue is not int spectrumSampleRate)
+                return;
+
+            if (audioVisualizerView.IsRendering)
+                throw new InvalidOperationException($"{nameof(SpectrumSampleRate)} on only be set while not rendering");
+
+            audioVisualizerView._capture.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(spectrumSampleRate, 1);
+        }
+
+        private static void RenderEnableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not AudioVisualizerView audioVisualizerView ||
+                e.NewValue is not bool value)
+                return;
+#if DEBUG
+            if (DesignerProperties.GetIsInDesignMode(d))
+                return;
+#endif
+
+            if (value)
+                audioVisualizerView.StartRenderAsync();
+            else
+                audioVisualizerView.StopRendering();
+        }
+
+        Task? renderTask;
+        CancellationTokenSource? cancellation;
+
+        private void StartRenderAsync()
+        {
+            if (renderTask != null)
+                return;
+
+            cancellation = new CancellationTokenSource();
+            renderTask = RenderLoopAsync(cancellation.Token);
+        }
+
+        private async Task RenderLoopAsync(CancellationToken token)
+        {
+            IsRendering = true;
+            _capture.StartRecording();
+
+            while (true)
+            {
+                if (token.IsCancellationRequested)
+                    break;
+
+                _spectrumData = _visualizer.GetSpectrumData();
+
+                if (SpectrumBlurry is int blurry and not 0)
+                    _spectrumData = Visualizer.GetBlurry(_spectrumData, blurry);
+
+                if (SpectrumFactor is double factor and not 1.0)
+                    for (int i = 0; i < _spectrumData.Length; i++)
+                        _spectrumData[i] *= factor;
+
+                InvalidateVisual();
+
+                await Task.Delay(RenderInterval);
+            }
+
+            _capture.StopRecording();
+            IsRendering = false;
+        }
+
+        private void StopRendering()
+        {
+            cancellation?.Cancel();
+            renderTask = null;
+        }
+
 
         public void Start()
         {
             if (!started)
             {
                 started = true;
-                // 初始化可视化器
-                //visualizer = new Visualizer(256);
-                //allColors = GetAllHsvColors();
 
                 // 定时器更新数据
                 dataTimer = new DispatcherTimer();
-                dataTimer.Interval = TimeSpan.FromMilliseconds(50);  // 每50毫秒更新一次
+                dataTimer.Interval = TimeSpan.FromMilliseconds(0);  // 实时更新
                 dataTimer.Tick += (sender, args) =>
                 {
-                    double[] newSpectrumData = visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
+                    double[] newSpectrumData = _visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
                     newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // 平滑频谱数据
 
-                    spectrumData = newSpectrumData;
+                    _spectrumData = newSpectrumData;
                 };
                 dataTimer.Start();
 
                 // 启动绘制定时器
                 drawingTimer = new DispatcherTimer();
-                drawingTimer.Interval = TimeSpan.FromMilliseconds(50);  // 每16毫秒绘制一次，约60fps
+                drawingTimer.Interval = TimeSpan.FromMilliseconds(0);  // 试试绘制
                 drawingTimer.Tick += (sender, args) =>
                 {
-                    if (spectrumData == null)
+                    if (_spectrumData == null)
                         return;
 
                     DrawSoundEffects();
-                    //this.InvalidateVisual();  // 重新绘制
-
 
                 };
                 drawingTimer.Start();
@@ -111,19 +344,22 @@ namespace AudioVisualizer.WPF
                 drawingTimer?.Stop();
             }
         }
-        public void DrawSoundEffects() 
+        public void DrawSoundEffects()
         {
-            var audioBuffer = spectrumData;
+            var audioBuffer = _spectrumData;
+            GetCurrentColor(out Color color1, out Color color2);
+
             switch (VisualEffict)
             {
                 case Core.VisualEffect.SpectrumCycle:
                     spectrumBarFormCanvas.Visibility = Visibility.Collapsed;
-                    Dispatcher.Invoke((Delegate)(() => cycleWaveformCanvas.UpdateAudioData(audioBuffer)));
+                    Dispatcher.Invoke((Delegate)(() => cycleWaveformCanvas.UpdateAudioData(_spectrumData, StripCount, StripSpacing, color1, color2)));
                     break;
 
                 case Core.VisualEffect.SpectrumBar:
                     cycleWaveformCanvas.Visibility = Visibility.Collapsed;
-                    Dispatcher.Invoke((Delegate)(() => spectrumBarFormCanvas.UpdateAudioData(audioBuffer)));
+                    Dispatcher.Invoke((Delegate)(() => spectrumBarFormCanvas.UpdateAudioData(_spectrumData, StripCount, StripSpacing, color1, color2)));
+                    DrawLine(color1);
                     break;
                 default:
                     break;
@@ -157,49 +393,23 @@ namespace AudioVisualizer.WPF
         {
             cycleWaveformCanvas.Children.Clear();
             spectrumBarFormCanvas.Children.Clear();
-
+            GetCurrentColor(out Color color1, out Color color2);
             switch (effect)
             {
                 case Core.VisualEffect.SpectrumCycle:
-                    DrawCircle();
+                    //DrawCircle();
                     break;
 
                 case Core.VisualEffect.SpectrumBar:
-                    DrawLine();
+                    DrawLine(color1);
                     break;
                 default:
                     break;
             }
         }
+        
 
-        private void DrawCircle(double sizeFactor = 0.6)
-        {
-            double canvasWidth = cycleWaveformCanvas.ActualWidth;
-            double canvasHeight = cycleWaveformCanvas.ActualHeight;
-            if (canvasWidth == 0 || canvasHeight == 0)
-                return;
-
-            double radius = Math.Min(canvasWidth, canvasHeight) * sizeFactor / 2;
-            double centerX = canvasWidth / 2;
-            double centerY = canvasHeight / 2;
-
-            Ellipse circle = new Ellipse
-            {
-                Width = radius * 2,
-                Height = radius * 2,
-                Stroke = Brushes.LimeGreen,
-                StrokeThickness = 3
-            };
-
-            Canvas.SetLeft(circle, centerX - radius);
-            Canvas.SetTop(circle, centerY - radius);
-
-            cycleWaveformCanvas.Children.Clear();
-
-            cycleWaveformCanvas.Children.Add(circle);
-        }
-
-        private void DrawLine()
+        private void DrawLine(Color gradientColor)
         {
             double canvasWidth = spectrumBarFormCanvas.ActualWidth;
             double canvasHeight = spectrumBarFormCanvas.ActualHeight;
@@ -207,16 +417,16 @@ namespace AudioVisualizer.WPF
             if (canvasWidth == 0 || canvasHeight == 0)
                 return;
 
-
+            // 创建线性渐变刷子并传入单一颜色
             LinearGradientBrush gradientBrush = new LinearGradientBrush
             {
                 StartPoint = new Point(0, 0),
                 EndPoint = new Point(1, 0)
             };
-            gradientBrush.GradientStops.Add(new GradientStop(Colors.Purple, 0.0));
-            gradientBrush.GradientStops.Add(new GradientStop(Colors.Orange, 0.5));
-            gradientBrush.GradientStops.Add(new GradientStop(Colors.Yellow, 1.0));
+            gradientBrush.GradientStops.Add(new GradientStop(gradientColor, 0.0));  // 起始颜色
+            gradientBrush.GradientStops.Add(new GradientStop(gradientColor, 1.0));  // 结束颜色
 
+            // 创建线并设置位置、颜色等属性
             Line line = new Line
             {
                 X1 = 10,
@@ -227,51 +437,35 @@ namespace AudioVisualizer.WPF
                 StrokeThickness = 2
             };
 
+            // 将线添加到画布中
             spectrumBarFormCanvas.Children.Add(line);
         }
+
 
         
 
 
-        /// <summary>
-        /// 获取 HSV 中所有的基础颜色 (饱和度和明度均为最大值)
-        /// </summary>
-        /// <returns>所有的 HSV 基础颜色(共 256 * 6 个, 并且随着索引增加, 颜色也会渐变)</returns>
-        private Color[] GetAllHsvColors()
+
+
+
+        private void GetCurrentColor(out Color color1, out Color color2)
         {
-            Color[] result = new Color[256 * 6];
+            double time = (DateTime.Now - _startTime).TotalSeconds;
+            double rate = time / ColorTransitionTime;
 
-            for (int i = 0; i < 256; i++)
-            {
-                result[i] = Color.FromArgb(255, i, 0);
-            }
+            color1 = GetColorFromRate(rate);
+            color2 = GetColorFromRate(rate + ColorGradientOffset);
+        }
 
-            for (int i = 0; i < 256; i++)
-            {
-                result[256 + i] = Color.FromArgb(255 - i, 255, 0);
-            }
+        private Color GetColorFromRate(double rate)
+        {
+            if (rate < 0)
+                rate = rate % 1 + 1;
+            else
+                rate = rate % 1;
 
-            for (int i = 0; i < 256; i++)
-            {
-                result[512 + i] = Color.FromArgb(0, 255, i);
-            }
-
-            for (int i = 0; i < 256; i++)
-            {
-                result[768 + i] = Color.FromArgb(0, 255 - i, 255);
-            }
-
-            for (int i = 0; i < 256; i++)
-            {
-                result[1024 + i] = Color.FromArgb(i, 0, 255);
-            }
-
-            for (int i = 0; i < 256; i++)
-            {
-                result[1280 + i] = Color.FromArgb(255, 0, 255 - i);
-            }
-
-            return result;
+            int maxIndex = allColors.Length - 1;
+            return allColors[(int)(maxIndex * rate)];
         }
 
         private void cycleWaveformCanvas_SizeChanged(object sender, SizeChangedEventArgs e)

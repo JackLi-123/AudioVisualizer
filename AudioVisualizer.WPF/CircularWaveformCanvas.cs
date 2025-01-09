@@ -11,63 +11,123 @@ namespace AudioVisualizer.WPF
 {
     internal class CircularWaveformCanvas : Canvas
     {
-        private double[] audioData;
+        private double[]? _spectrumData;
+        private int _stripCount;
+        private float _stripSpacing;
+        private Color _color1;
+        private Color _color2;
 
-        public void UpdateAudioData(double[] data)
+        public void UpdateAudioData(double[] spectrumData, int stripCount, float stripSpacing, Color color1, Color color2)
         {
-            audioData = data;
+            _spectrumData = spectrumData;
+            _stripCount = stripCount;
+            _stripSpacing = stripSpacing;
+            _color1 = color1;
+            _color2 = color2;
             InvalidateVisual();
         }
 
 
+        //protected override void OnRender(DrawingContext dc)
+        //{
+        //    int stripCount = _stripCount;
+        //    double thickness = ActualWidth / _stripCount * (1 - _stripSpacing);
+
+        //    if (thickness < 0)
+        //        thickness = 1;
+
+        //    double middleY = ActualHeight / 2;  // 中间位置
+        //    double amplitudeFactor = 50;  // 控制幅度的因子
+        //    double radius = thickness / 2;  // 圆形的半径
+
+        //    for (int i = 0; i < stripCount; i++)
+        //    {
+        //        double value = _spectrumData[i * _spectrumData.Length / stripCount];
+        //        double y = Math.Round(middleY * (1 - value * amplitudeFactor), 1);  // 控制圆形的高度
+        //        double x = ((double)i / (stripCount - 1)) * ActualWidth;
+
+        //        // 设置圆形的中心坐标
+        //        Point center = new Point(x, middleY);
+
+        //        // 计算圆形的半径
+        //        double circleRadius = Math.Abs(middleY - y);  // 计算到中间位置的距离
+
+        //        // 使用 EllipseGeometry 绘制圆形
+        //        EllipseGeometry ellipse = new EllipseGeometry(center, circleRadius, circleRadius);
+
+        //        // 使用渐变色填充圆形
+        //        GradientBrush brush = new LinearGradientBrush(_color1, _color2, new Point(0, 1), new Point(0, 0));
+        //        Pen pen = new Pen(brush, thickness);
+
+        //        // 绘制圆形
+        //        dc.DrawGeometry(null, pen, ellipse);
+        //    }
+        //}
+
+
+
         protected override void OnRender(DrawingContext dc)
         {
-            base.OnRender(dc);
-
-            if (audioData == null || audioData.Length == 0)
+            if (_spectrumData == null || _spectrumData.Length == 0 || _stripCount <= 0)
                 return;
 
-            double width = ActualWidth;
-            double height = ActualHeight;
+            double canvasWidth = ActualWidth;
+            double canvasHeight = ActualHeight;
 
-            // 计算画布的中心点
-            double centerX = width / 2;
-            double centerY = height / 2;
+            if (canvasWidth <= 0 || canvasHeight <= 0)
+                return;
 
-            // 半径决定条形的散开范围
-            double radius = (Math.Min(centerX, centerY) - 10) * 0.62;
+            double centerX = canvasWidth / 2; // 圆心 X
+            double centerY = canvasHeight / 2; // 圆心 Y
+            double baseRadius = Math.Min(canvasWidth, canvasHeight) / 3.5; // 圆形的基础半径
+            double amplitudeFactor = 50; // 增大条形高度的因子
+            double thickness = (Math.PI * 2 * baseRadius) / (_stripCount * (1 + _stripSpacing)); // 动态调整宽度
+            double angleStep = 360.0 / _stripCount; // 确保完整覆盖360度
 
-            // 动态条形绘制
-            double barWidth = 5; // 每个条形的宽度
+            // 绘制内圆
+            Pen circlePen = new Pen(new SolidColorBrush(_color1), 3);
+            dc.DrawEllipse(null, circlePen, new Point(centerX, centerY), baseRadius, baseRadius);
 
-            // 角度间隔，确保条形均匀分布在圆周上
-            double angleStep = 360.0 / audioData.Length;
-
-            // 绘制每个条形
-            for (int i = 0; i < audioData.Length; i++)
+            // 创建渐变画笔
+            LinearGradientBrush gradientBrush = new LinearGradientBrush
             {
-                // 计算条形的高度（通过音频数据缩放）
-                double barHeight = Math.Abs(audioData[i] * height) * 30; // 根据音频数据决定条形高度
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 0)
+            };
+            gradientBrush.GradientStops.Add(new GradientStop(_color1, 0.0));
+            gradientBrush.GradientStops.Add(new GradientStop(_color2, 1.0));
+            Pen barPen = new Pen(gradientBrush, thickness);
 
-                // 计算当前条形的角度
-                double angle = i * angleStep;
+            // 检查音频数据是否有效（全为零或接近零）
+            bool isSilent = _spectrumData.All(value => Math.Abs(value) < 0.001); // 设置一个小阈值，表示无声音状态
 
-                // 将角度转换为弧度
-                double radians = Math.PI * angle / 180.0;
+            // 绘制条形
+            for (int i = 0; i < _stripCount; i++)
+            {
+                double angle = i * angleStep; // 计算条形的角度
+                double angleInRadians = angle * Math.PI / 180.0; // 转换为弧度
 
-                // 根据角度和半径计算条形的起点（圆周位置）
-                double startX = centerX + radius * Math.Cos(radians); // 起点的 x 坐标
-                double startY = centerY + radius * Math.Sin(radians); // 起点的 y 坐标
+                double xStart = centerX + baseRadius * Math.Cos(angleInRadians);
+                double yStart = centerY + baseRadius * Math.Sin(angleInRadians);
 
-                double endX = centerX + (radius + barHeight) * Math.Cos(radians); // 终点的 x 坐标
-                double endY = centerY + (radius + barHeight) * Math.Sin(radians); // 终点的 y 坐标
+                double barLength;
+                if (isSilent)
+                {
+                    barLength = 0; // 如果是无声音状态，条形长度保持为 0
+                }
+                else
+                {
+                    double maxAmplitude = _spectrumData.Max();
+                    double normalizedValue = maxAmplitude > 0 ? _spectrumData[i % _spectrumData.Length] / maxAmplitude : 0; // 归一化数据
+                    barLength = Math.Max(amplitudeFactor * normalizedValue, 0); // 动态高度
+                }
 
-                // 绘制条形
-                Pen pen = new Pen(Brushes.Green, barWidth); // 设置条形颜色和宽度
-                dc.DrawLine(pen, new Point(startX, startY), new Point(endX, endY)); // 绘制从起点到终点的线条
+                double xEnd = centerX + (baseRadius + barLength) * Math.Cos(angleInRadians);
+                double yEnd = centerY + (baseRadius + barLength) * Math.Sin(angleInRadians);
+
+                dc.DrawLine(barPen, new Point(xStart, yStart), new Point(xEnd, yEnd));
             }
         }
-
 
 
     }

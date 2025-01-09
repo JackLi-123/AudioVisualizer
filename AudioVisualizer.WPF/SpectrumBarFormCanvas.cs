@@ -11,46 +11,69 @@ namespace AudioVisualizer.WPF
 {
     internal class SpectrumBarFormCanvas : Canvas
     {
-        private double[] audioData;
+        private double[]? _spectrumData;
+        private int _stripCount;
+        private float _stripSpacing;
+        private Color _color1;
+        private Color _color2;
 
-        public void UpdateAudioData(double[] data)
+
+        public void UpdateAudioData(double[] spectrumData, int stripCount, float stripSpacing, Color color1, Color color2)
         {
-            audioData = data;
+            _spectrumData = spectrumData;
+            _stripCount = stripCount;
+            _stripSpacing = stripSpacing;
+            _color1 = color1;
+            _color2 = color2;
             InvalidateVisual();
         }
 
         protected override void OnRender(DrawingContext dc)
         {
-            base.OnRender(dc);
+            int stripCount = _stripCount;
+            double thickness = ActualWidth / _stripCount * (1 - _stripSpacing);
 
-            if (audioData == null || audioData.Length == 0)
-                return;
+            if (thickness < 0)
+                thickness = 1;
 
-            double width = ActualWidth;
-            double height = ActualHeight;
+            double middleY = ActualHeight / 2;  // 中间位置
+            double amplitudeFactor = 50;  // 控制幅度的因子
 
-            // Calculate the middle point
-            double centerY = height / 2;
+            PathGeometry pathGeometry = new PathGeometry();
 
-            Pen pen = new Pen(Brushes.Blue, 1);
-            Brush brush = Brushes.Black;
-
-            // Dynamic bar drawing
-            double barWidth = width / audioData.Length; // Each bar's width
-            double barSpacing = 2; // Space between bars (optional)
-
-            // Iterate over the audio data and draw bars
-            for (int i = 0; i < audioData.Length; i++)
+            int end = stripCount - 1;
+            for (int i = 0; i < stripCount; i++)
             {
-                double barHeight = Math.Abs(audioData[i] * height) * 30;  // Scale the data to the height of the canvas
-                double x = i * (barWidth + barSpacing);    // Calculate the x position for the bar
+                double value = _spectrumData[i * _spectrumData.Length / stripCount];
+                double y = Math.Round(ActualHeight / 2 * (1 - value * amplitudeFactor), 1);
+                double x = ((double)i / end) * ActualWidth;
 
-                // Adjust the Y position so that the bars start from the middle and only go upwards
-                double y = centerY - barHeight; // The bars will only expand upwards from the middle
+                if (y > middleY)
+                {
+                    y = middleY;
+                }
 
-                // Draw the bar
-                dc.DrawRectangle(Brushes.Green, null, new Rect(x, y, barWidth, barHeight));
+                pathGeometry.Figures.Add(new PathFigure()
+                {
+                    StartPoint = new Point(x, ActualHeight / 2),
+                    Segments =
+                            {
+                                new LineSegment()
+                                {
+                                    Point = new Point(x, y)
+                                }
+                            }
+                });
             }
+
+
+            // Create gradient brush for coloring the bars
+            GradientBrush brush = new LinearGradientBrush(_color1, _color2, new Point(0, 1), new Point(0, 0));
+            Pen pen = new Pen(brush, thickness);
+
+            // Draw the geometry on the canvas
+            dc.DrawGeometry(null, pen, pathGeometry);
         }
+
     }
 }

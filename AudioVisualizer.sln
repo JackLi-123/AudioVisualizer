@@ -14,9 +14,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WinForm", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WinForm.Sample", "AudioVisualizer.WinForm.Sample\AudioVisualizer.WinForm.Sample.csproj", "{9A99F14F-1C25-44B0-833E-47441CEC2D01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioVisualizer.WPF.Sample", "AudioVisualizer.WPF.Sample\AudioVisualizer.WPF.Sample.csproj", "{A2E7A01A-2EB2-40F2-8508-65A80BBD2570}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WPF.Sample", "AudioVisualizer.WPF.Sample\AudioVisualizer.WPF.Sample.csproj", "{A2E7A01A-2EB2-40F2-8508-65A80BBD2570}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioVisualizer.WPF", "AudioVisualizer.WPF\AudioVisualizer.WPF.csproj", "{28F09FBF-107F-4418-8D13-326B4963B239}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizer.WPF", "AudioVisualizer.WPF\AudioVisualizer.WPF.csproj", "{28F09FBF-107F-4418-8D13-326B4963B239}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioVisualizerWpf.TODO", "WpfAudioVisualizer\AudioVisualizerWpf.TODO.csproj", "{3F7F5D07-C586-48EE-BAE1-81B48E6AAB0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{28F09FBF-107F-4418-8D13-326B4963B239}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28F09FBF-107F-4418-8D13-326B4963B239}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28F09FBF-107F-4418-8D13-326B4963B239}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F7F5D07-C586-48EE-BAE1-81B48E6AAB0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F7F5D07-C586-48EE-BAE1-81B48E6AAB0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F7F5D07-C586-48EE-BAE1-81B48E6AAB0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F7F5D07-C586-48EE-BAE1-81B48E6AAB0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
