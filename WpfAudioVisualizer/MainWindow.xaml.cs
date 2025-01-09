@@ -30,66 +30,71 @@ namespace WpfAudioVisualizer
 
         void ProcessCommandLine(App.AppOptions o)
         {
-            if (o.FullScreen)
-            {
-                Topmost = true;
-                WindowStyle = WindowStyle.None;
-                ResizeMode = ResizeMode.NoResize;
-                WindowState = WindowState.Maximized;
-                Background = Brushes.Transparent;
-                Opacity = o.Opacity;
+            //if (false && o.FullScreen)
+            //{
+            //    Topmost = true;
+            //    //WindowStyle = WindowStyle.None;
+            //    ResizeMode = ResizeMode.NoResize;
+            //    WindowState = WindowState.Maximized;
+            //    Background = Brushes.Transparent;
+            //    Opacity = o.Opacity;
 
-                AllowsTransparency = true;
-                IsHitTestVisible = false;
-                //WindowChrome.SetWindowChrome(this, new WindowChrome()
-                //{
-                //    GlassFrameThickness = new Thickness(-1)
-                //});
-
-
-                visualizerControl.EnableCurveRendering = false;
-                visualizerControl.EnableCircleStripsRendering = false;
-            }
+            //    AllowsTransparency = true;
+            //    IsHitTestVisible = false;
+            //    //WindowChrome.SetWindowChrome(this, new WindowChrome()
+            //    //{
+            //    //    GlassFrameThickness = new Thickness(-1)
+            //    //});
 
 
-            if (o.DisableCurve)
-                visualizerControl.EnableCurveRendering = false;
-            if (o.DisableStrips)
-                visualizerControl.EnableStripsRendering = false;
-            if (o.DisableBorder)
-                visualizerControl.EnableBorderRendering = false;
-            if (o.DisableCircleStripsRendering)
-                visualizerControl.EnableCircleStripsRendering = false;
+            //    visualizerControl.EnableCurveRendering = false;
+            //    visualizerControl.EnableCircleStripsRendering = false;
+            //}
 
 
-            if (o.EnableCurve)
-                visualizerControl.EnableCurveRendering = true;
-            if (o.EnableStrips)
-                visualizerControl.EnableStripsRendering = true;
-            if (o.EnableBorder)
-                visualizerControl.EnableBorderRendering = true;
-            if (o.EnableCircleStripsRendering)
-                visualizerControl.EnableCircleStripsRendering = true;
+            //if (o.DisableCurve)
+            //    visualizerControl.EnableCurveRendering = false;
+            //if (o.DisableStrips)
+            //    visualizerControl.EnableStripsRendering = false;
+            //if (o.DisableBorder)
+            //    visualizerControl.EnableBorderRendering = false;
+            //if (o.DisableCircleStripsRendering)
+            //    visualizerControl.EnableCircleStripsRendering = false;
 
-            if (o.SpectrumSize.HasValue)
-                visualizerControl.SpectrumSize = o.SpectrumSize.Value;
-            if (o.SpectrumSampleRate.HasValue)
-                visualizerControl.SpectrumSampleRate = o.SpectrumSampleRate.Value;
-            if (o.SpectrumBlurry.HasValue)
-                visualizerControl.SpectrumBlurry = o.SpectrumBlurry.Value;
-            if (o.SpectrumFactor.HasValue)
-                visualizerControl.SpectrumFactor = o.SpectrumFactor.Value;
 
-            if (o.StripCount.HasValue)
-                visualizerControl.StripCount = o.StripCount.Value;
-            if (o.StripSpacing.HasValue)
-                visualizerControl.StripSpacing = o.StripSpacing.Value;
-            if (o.CircleStripCount.HasValue)
-                visualizerControl.CircleStripCount = o.CircleStripCount.Value;
-            if (o.CircleStripSpacing.HasValue)
-                visualizerControl.CircleStripSpacing = o.CircleStripSpacing.Value;
-            if (o.CircleStripRotationSpeed.HasValue)
-                visualizerControl.CircleStripRotationSpeed = o.CircleStripRotationSpeed.Value;
+            //if (o.EnableCurve)
+            //    visualizerControl.EnableCurveRendering = true;
+            //if (o.EnableStrips)
+            //    visualizerControl.EnableStripsRendering = true;
+            //if (o.EnableBorder)
+            //    visualizerControl.EnableBorderRendering = true;
+            //if (o.EnableCircleStripsRendering)
+            //    visualizerControl.EnableCircleStripsRendering = true;
+
+            //if (o.SpectrumSize.HasValue)
+            //    visualizerControl.SpectrumSize = o.SpectrumSize.Value;
+            //if (o.SpectrumSampleRate.HasValue)
+            //    visualizerControl.SpectrumSampleRate = o.SpectrumSampleRate.Value;
+            //if (o.SpectrumBlurry.HasValue)
+            //    visualizerControl.SpectrumBlurry = o.SpectrumBlurry.Value;
+            //if (o.SpectrumFactor.HasValue)
+            //    visualizerControl.SpectrumFactor = o.SpectrumFactor.Value;
+
+            //if (o.StripCount.HasValue)
+            //    visualizerControl.StripCount = o.StripCount.Value;
+            //if (o.StripSpacing.HasValue)
+            //    visualizerControl.StripSpacing = o.StripSpacing.Value;
+            //if (o.CircleStripCount.HasValue)
+            //    visualizerControl.CircleStripCount = o.CircleStripCount.Value;
+            //if (o.CircleStripSpacing.HasValue)
+            //    visualizerControl.CircleStripSpacing = o.CircleStripSpacing.Value;
+            //if (o.CircleStripRotationSpeed.HasValue)
+            //    visualizerControl.CircleStripRotationSpeed = o.CircleStripRotationSpeed.Value;
+
+            visualizerControl.EnableCircleStripsRendering = true;
+            visualizerControl.EnableCurveRendering = true;
+            visualizerControl.EnableStripsRendering = true;
+
         }
 
         [RelayCommand]
