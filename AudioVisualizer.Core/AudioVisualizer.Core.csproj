@@ -18,7 +18,7 @@
 
     <!-- README and LICENSE -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Title>Audio Visualizer</Title>
     <PackageProjectUrl>https://github.com/JackLi-123/AudioVisualizer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jackLi-123/AudioVisualizer/</RepositoryUrl>
@@ -29,12 +29,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="docs\LICENSE.md" Pack="true" PackagePath="\">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="docs\README.md" Pack="true" PackagePath="\">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

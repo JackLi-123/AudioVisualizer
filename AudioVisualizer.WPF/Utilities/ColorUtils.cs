@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace AudioVisualizer.WPF.Utilities
 {
-    public static class ColorUtils
+    internal static class ColorUtils
     {
         /// <summary>
         /// 获取 HSV 中所有的基础颜色 (饱和度和明度均为最大值)
