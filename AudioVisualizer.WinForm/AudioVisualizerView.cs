@@ -28,10 +28,10 @@ namespace AudioVisualizer.WinForm
         private BufferedGraphics? oldBuffer;
 
 
-        Visualizer visualizer;             // 可视化
-        double[]? spectrumData;            // 频谱数据
+        Visualizer visualizer;             // Visualization
+        double[]? spectrumData;            // Spectrum data
 
-        Color[] allColors;                 // 渐变颜色
+        Color[] allColors;                 // Gradient Color
 
         public AudioVisualizerView()
         {
@@ -64,9 +64,9 @@ namespace AudioVisualizer.WinForm
             this.BackColor = Color.Black;
             if (!IsInDesignMode())
             {
-                visualizer = new Visualizer(256);               // 新建一个可视化器, 并使用 256 个采样进行傅里叶变换
+                visualizer = new Visualizer(256);               // Create a new visualizer and perform Fourier transform using 256 samples
 
-                allColors = GetAllHsvColors();                  // 获取所有的渐变颜色 (HSV 颜色)
+                allColors = GetAllHsvColors();                  // Get all gradient colors (HSV colors)
 
 
                 dataTimer.Interval = 50;
@@ -97,9 +97,9 @@ namespace AudioVisualizer.WinForm
 
 
         /// <summary>
-        /// 获取 HSV 中所有的基础颜色 (饱和度和明度均为最大值)
+        /// Retrieve all base colors in HSV (with maximum saturation and brightness)
         /// </summary>
-        /// <returns>所有的 HSV 基础颜色(共 256 * 6 个, 并且随着索引增加, 颜色也会渐变)</returns>
+        /// <returns>All HSV base colors (256 * 6 in total, and colors will gradually change as the index increases)</returns>
         private Color[] GetAllHsvColors()
         {
             Color[] result = new Color[256 * 6];
@@ -140,14 +140,14 @@ namespace AudioVisualizer.WinForm
 
 
         /// <summary>
-        /// 用来刷新频谱数据以及实现频谱数据缓动
+        /// Used to refresh spectrum data and implement spectrum data buffering
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void DataTimer_Tick(object? sender, EventArgs e)
         {
-            double[] newSpectrumData = visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
-            newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // 平滑频谱数据
+            double[] newSpectrumData = visualizer.GetSpectrumData();         // Retrieve spectrum data from the visualizer
+            newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // Smooth spectrum data
 
             spectrumData = newSpectrumData;
         }
@@ -163,9 +163,9 @@ namespace AudioVisualizer.WinForm
             Color color1 = allColors[colorIndex % allColors.Length];
             Color color2 = allColors[(colorIndex + 200) % allColors.Length];
 
-            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, AudioSampleRate, 250);       // 低频区域
-            double bassScale = bassArea.Average() * 100;                                                                    // 低音导致的缩放 (比例数)
-            double extraScale = Math.Min(this.Width, this.Height) / 6;                                      // 低音导致的缩放 (乘上窗口大小)
+            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, AudioSampleRate, 250);       // Low frequency region
+            double bassScale = bassArea.Average() * 100;                                                                    // Scaling caused by bass (scale)
+            double extraScale = Math.Min(this.Width, this.Height) / 6;                                      // Scaling caused by bass (multiplied by window size)
 
             Rectangle border = new Rectangle(Point.Empty, this.Size);
 
@@ -174,13 +174,13 @@ namespace AudioVisualizer.WinForm
 
             if (oldBuffer != null)
             {
-                //oldBuffer.Render(buffer.Graphics);      // 如果你想要实现 "留影" 效果, 就取消注释这段代码, 并且将 g.Clear 改为 g.FillRectange(xxx, 半透明的黑色)
+                //oldBuffer.Render(buffer.Graphics);      // If you want to achieve the "ghosting" effect, uncomment this code and change g.Clear to g.FillRectange (xxx, semi transparent black)
                 oldBuffer.Dispose();
             }
 
-            using Pen pen = new Pen(Color.Pink);                  // 画音频采样波形用的笔
+            using Pen pen = new Pen(Color.Pink);                  // Pen used for drawing audio sampling waveforms
 
-            g.SmoothingMode = SmoothingMode.HighQuality;          // 嗨嗨害, 那必须得是高质量绘图
+            g.SmoothingMode = SmoothingMode.HighQuality;          // High quality drawing
             g.Clear(this.BackColor);
 
             switch (this.VisualEffect)
@@ -208,40 +208,38 @@ namespace AudioVisualizer.WinForm
 
             buffer.Render();
 
-            oldBuffer = buffer;                                   // 保存一下 buffer (之所以不全局只使用一个 Buffer 是因为,,, 用户可能调整窗口大小, 所以每一帧都必须适应)
+            oldBuffer = buffer;                                   // Save the buffer (the reason why only one buffer is used globally is that users may adjust the window size, so each frame must adapt)
         }
 
 
-        //绘制一个圆
+        //Draw a circle
         public void DrawCycle(Graphics g, Color down, Color up, int width, int height)
         {
-            // 计算圆的直径，选择宽高中的较小值，以确保圆形始终是正圆
+            // Calculate the diameter of a circle and choose the smaller value of width, height, and height to ensure that the circle is always a perfect circle
             int diameter = Math.Min(width / 2, height / 2);
 
-            // 计算圆心位置
+            // Calculate the center position of the circle
             int x = (width - diameter) / 2;
             int y = (height - diameter) / 2;
 
-            // 创建画笔
-            using (Pen pen = new Pen(up, 3))  // 选择你想要的颜色和线条粗细
+            using (Pen pen = new Pen(up, 3))  // Choose the color and line thickness you want
             {
-                // 在窗体中绘制空心圆
                 g.DrawEllipse(pen, x, y, diameter, diameter);
             }
         }
 
         /// <summary>
-        /// 绘制一个渐变的 波浪
+        /// Draw a gradient wave
         /// </summary>
-        /// <param name="g">绘图目标</param>
-        /// <param name="down">下方颜色</param>
-        /// <param name="up">上方颜色</param>
-        /// <param name="spectrumData">频谱数据</param>
-        /// <param name="pointCount">波浪中, 点的数量</param>
-        /// <param name="drawingWidth">波浪的宽度</param>
-        /// <param name="xOffset">波浪的起始X坐标</param>
-        /// <param name="yOffset">波浪的其实Y坐标</param>
-        /// <param name="scale">频谱的缩放(使用负值可以翻转波浪)</param>
+        /// <param name="g">Drawing Objective</param>
+        /// <param name="down">Color below</param>
+        /// <param name="up">Color above</param>
+        /// <param name="spectrumData">Spectrum data</param>
+        /// <param name="pointCount">Number of points in waves</param>
+        /// <param name="drawingWidth">The width of waves</param>
+        /// <param name="xOffset">The starting X-coordinate of the wave</param>
+        /// <param name="yOffset">The actual Y coordinate of waves</param>
+        /// <param name="scale">Scaling of Spectrum (Using Negative Values to Flip Waves)</param>
         private void DrawGradient(Graphics g, Color down, Color up, double[] spectrumData, int pointCount, int drawingWidth, float xOffset, float yOffset, double scale)
         {
             GraphicsPath path = new GraphicsPath();
@@ -269,17 +267,17 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 绘制渐变的条形
+        /// Draw a gradient bar
         /// </summary>
-        /// <param name="g">绘图目标</param>
-        /// <param name="down">下方颜色</param>
-        /// <param name="up">上方颜色</param>
-        /// <param name="spectrumData">频谱数据</param>
-        /// <param name="stripCount">条形的数量</param>
-        /// <param name="drawingWidth">绘图的宽度</param>
-        /// <param name="xOffset">绘图的起始 X 坐标</param>
-        /// <param name="yOffset">绘图的起始 Y 坐标</param>
-        /// <param name="spacing">条形与条形之间的间隔(像素)</param>
+        /// <param name="g"></param>
+        /// <param name="down"></param>
+        /// <param name="up"></param>
+        /// <param name="spectrumData"></param>
+        /// <param name="stripCount"></param>
+        /// <param name="drawingWidth"></param>
+        /// <param name="xOffset"></param>
+        /// <param name="yOffset"></param>
+        /// <param name="spacing"></param>
         /// <param name="scale"></param>
         private void DrawGradientBar(Graphics g, Color down, Color up, double[] spectrumData, int stripCount, int drawingWidth, float xOffset, float yOffset, float spacing, double scale)
         {
@@ -323,7 +321,7 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 画曲线
+        /// Draw a curve
         /// </summary>
         /// <param name="g"></param>
         /// <param name="pen"></param>
@@ -347,7 +345,7 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 画简单的圆环线条
+        /// Draw simple circular lines
         /// </summary>
         /// <param name="g"></param>
         /// <param name="brush"></param>
@@ -394,7 +392,7 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 画圆环渐变条
+        /// Draw a circular gradient bar
         /// </summary>
         /// <param name="g"></param>
         /// <param name="inner"></param>
@@ -448,13 +446,13 @@ namespace AudioVisualizer.WinForm
                 PointF outerP = new PointF((p3.X + p4.X) / 2, (p3.Y + p4.Y) / 2);
 
                 Vector2 offset = new Vector2(outerP.X - innerP.X, outerP.Y - innerP.Y);
-                if (MathF.Sqrt(offset.X * offset.X + offset.Y * offset.Y) < 1)                                // 渐变笔刷两点之间距离不能太小
+                if (MathF.Sqrt(offset.X * offset.X + offset.Y * offset.Y) < 1)                                // The distance between two points of the gradient brush cannot be too small
                     continue;
 
                 try
                 {
-                    using LinearGradientBrush brush = new LinearGradientBrush(innerP, outerP, inner, outer);        // 这里有玄学 bug, 这个 线性笔刷会 OutMemoryException
-                    g.FillPolygon(brush, polygon);                                                            // 但是实际上不应该有这个异常...
+                    using LinearGradientBrush brush = new LinearGradientBrush(innerP, outerP, inner, outer);      
+                    g.FillPolygon(brush, polygon);                                                           
                 }
                 catch { }
             }
@@ -464,7 +462,7 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 画简单的线条
+        /// Draw simple lines
         /// </summary>
         /// <param name="g"></param>
         /// <param name="brush"></param>
@@ -504,7 +502,7 @@ namespace AudioVisualizer.WinForm
         }
 
         /// <summary>
-        /// 画渐变的边框
+        /// Draw a gradient border
         /// </summary>
         /// <param name="g"></param>
         /// <param name="inner"></param>

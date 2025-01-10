@@ -62,7 +62,6 @@ namespace AudioVisualizer.WPF
         ArrayPool<Point> _pointArrayPool;
 
         private DispatcherTimer dataTimer;
-        private DispatcherTimer drawingTimer;
 
         static readonly Color[] allColors =
             ColorUtils.GetAllHsvColors();
@@ -78,64 +77,29 @@ namespace AudioVisualizer.WPF
             _visualizer.PushSampleData(waveData);
         }
 
-        public int SpectrumSize
+        private int SpectrumSize
         {
             get { return (int)GetValue(SpectrumSizeProperty); }
             set { SetValue(SpectrumSizeProperty, value); }
         }
 
-        public int SpectrumSampleRate
+        private int SpectrumSampleRate
         {
             get { return (int)GetValue(SpectrumSampleRateProperty); }
             set { SetValue(SpectrumSampleRateProperty, value); }
         }
 
-        public int SpectrumBlurry
+        private int SpectrumBlurry
         {
             get { return (int)GetValue(SpectrumBlurryProperty); }
             set { SetValue(SpectrumBlurryProperty, value); }
         }
 
-        public double SpectrumFactor
+        private double SpectrumFactor
         {
             get { return (double)GetValue(SpectrumFactorProperty); }
             set { SetValue(SpectrumFactorProperty, value); }
         }
-
-
-        //public void Start()
-        //{
-        //    if (!started)
-        //    {
-        //        started = true;
-
-        //        // 定时器更新数据
-        //        dataTimer = new DispatcherTimer();
-        //        dataTimer.Interval = TimeSpan.FromMilliseconds(0);  // 实时更新
-        //        dataTimer.Tick += (sender, args) =>
-        //        {
-        //            double[] newSpectrumData = _visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
-        //            newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // 平滑频谱数据
-
-        //            _spectrumData = newSpectrumData;
-        //        };
-        //        dataTimer.Start();
-
-        //        // 启动绘制定时器
-        //        drawingTimer = new DispatcherTimer();
-        //        drawingTimer.Interval = TimeSpan.FromMilliseconds(0);  // 试试绘制
-        //        drawingTimer.Tick += (sender, args) =>
-        //        {
-        //            if (_spectrumData == null)
-        //                return;
-
-        //            DrawSoundEffects();
-
-        //        };
-        //        drawingTimer.Start();
-
-        //    }
-        //}
 
         public void Stop()
         {
@@ -143,9 +107,7 @@ namespace AudioVisualizer.WPF
             {
                 started = false;
 
-                // 停止定时器
                 dataTimer?.Stop();
-                drawingTimer?.Stop();
             }
         }
 
@@ -155,80 +117,80 @@ namespace AudioVisualizer.WPF
             get { return (bool)GetValue(IsRenderingProperty.DependencyProperty); }
             private set { SetValue(IsRenderingProperty, value); }
         }
-        public bool RenderEnabled
+        private bool RenderEnabled
         {
             get { return (bool)GetValue(EnableRenderingProperty); }
             set { SetValue(EnableRenderingProperty, value); }
         }
 
-        public int RenderInterval
+        private int RenderInterval
         {
             get { return (int)GetValue(RenderIntervalProperty); }
             set { SetValue(RenderIntervalProperty, value); }
         }
 
-        public float ColorTransitionTime
+        private float ColorTransitionTime
         {
             get { return (float)GetValue(ColorTransitionTimeProperty); }
             set { SetValue(ColorTransitionTimeProperty, value); }
         }
 
-        public float ColorGradientOffset
+        private float ColorGradientOffset
         {
             get { return (float)GetValue(ColorGradientOffsetProperty); }
             set { SetValue(ColorGradientOffsetProperty, value); }
         }
 
-        public int StripCount
+        private int StripCount
         {
             get { return (int)GetValue(StripCountProperty); }
             set { SetValue(StripCountProperty, value); }
         }
 
-        public float StripSpacing
+        private float StripSpacing
         {
             get { return (float)GetValue(StripSpacingProperty); }
             set { SetValue(StripSpacingProperty, value); }
         }
 
-        public int CircleStripCount
+        private int CircleStripCount
         {
             get { return (int)GetValue(CircleStripCountProperty); }
             set { SetValue(CircleStripCountProperty, value); }
         }
 
-        public float CircleStripSpacing
+        private float CircleStripSpacing
         {
             get { return (float)GetValue(CircleStripSpacingProperty); }
             set { SetValue(CircleStripSpacingProperty, value); }
         }
 
-        public double CircleStripRotationSpeed
+        private double CircleStripRotationSpeed
         {
             get { return (double)GetValue(CircleStripRotationSpeedProperty); }
             set { SetValue(CircleStripRotationSpeedProperty, value); }
         }
 
 
-        public bool EnableCurveRendering
+        private bool EnableCurveRendering
         {
             get { return (bool)GetValue(EnableCurveProperty); }
             set { SetValue(EnableCurveProperty, value); }
         }
 
-        public bool EnableStripsRendering
+        private bool EnableStripsRendering
         {
             get { return (bool)GetValue(EnableStripsProperty); }
             set { SetValue(EnableStripsProperty, value); }
         }
 
-        public bool EnableBorderRendering
+        private bool EnableBorderRendering
         {
             get { return (bool)GetValue(EnableBorderDrawingProperty); }
             set { SetValue(EnableBorderDrawingProperty, value); }
         }
 
-        public bool EnableCircleStripsRendering
+        private bool EnableCircleStripsRendering
         {
             get { return (bool)GetValue(EnableCircleStripsRenderingProperty); }
             set { SetValue(EnableCircleStripsRenderingProperty, value); }
@@ -387,7 +349,7 @@ namespace AudioVisualizer.WPF
             int end = stripCount - 1;
             for (int i = 0; i < stripCount; i++)
             {
-                double value = spectrumData[i * spectrumData.Length / stripCount];
+                double value = spectrumData[i * spectrumData.Length / stripCount] * Scale;
                 double y = ActualHeight / 2 * (1 - value * 10);
                 double x = ((double)i / end) * ActualWidth;
 
@@ -416,14 +378,14 @@ namespace AudioVisualizer.WPF
 
             drawingContext.DrawGeometry(null, pen, pathGeometry);
 
-            // 在这里追加绘制直线的代码
-            double lineStartX = 0; // 直线起点 X 坐标
-            double lineStartY = ActualHeight / 2; // 直线起点 Y 坐标 (中间位置)
-            double lineEndX = ActualWidth; // 直线终点 X 坐标
-            double lineEndY = ActualHeight / 2; // 直线终点 Y 坐标 (中间位置)
+            // Add code for drawing straight lines here
+            double lineStartX = 0; // X coordinate of the starting point of the straight line
+            double lineStartY = ActualHeight / 2; // Y coordinate of the starting point of the straight line (middle position)
+            double lineEndX = ActualWidth; // X coordinate of the endpoint of a straight line
+            double lineEndY = ActualHeight / 2; // Y coordinate of the endpoint of the straight line (middle position)
 
-            // 使用 color1 作为直线颜色
-            Pen linePen = new Pen(new SolidColorBrush(color1), 2); // 宽度为 2 的直线
+            // Use color1 as the color for straight lines
+            Pen linePen = new Pen(new SolidColorBrush(color1), 2); // A straight line with a width of 2
             drawingContext.DrawLine(linePen, new Point(lineStartX, lineStartY), new Point(lineEndX, lineEndY));
         }
 
@@ -474,7 +436,7 @@ namespace AudioVisualizer.WPF
             for (int i = 0; i < stripCount; i++)
             {
                 double x = blockWidth * i + rotationAngle;
-                double y = spectrumData[i * spectrumData.Length / stripCount] * scale;
+                double y = spectrumData[i * spectrumData.Length / stripCount] * scale * Scale;
                 points[i] = new Point(x, y);
             }
 
@@ -492,14 +454,14 @@ namespace AudioVisualizer.WPF
                     new GradientStop(color2, 1),
                 });
 
-            Brush borderBrush = new SolidColorBrush(color2); // 边框颜色
+            Brush borderBrush = new SolidColorBrush(color2);
 
-            double centerRadius = Math.Round(radius, 1); // 圆的半径
+            double centerRadius = Math.Round(radius, 1);
             drawingContext.DrawEllipse(
-                null,                // 圆的填充颜色
-                new Pen(borderBrush, 2),    // 圆的边框颜色和宽度
-                new Point(xOffset, yOffset),  // 圆心位置
-                centerRadius, centerRadius    // 圆的宽度和高度
+                null,
+                new Pen(borderBrush, 2),
+                new Point(xOffset, yOffset),
+                centerRadius, centerRadius
             );
 
             PathGeometry pathGeometry = new PathGeometry();
@@ -602,17 +564,19 @@ namespace AudioVisualizer.WPF
             if (renderTask != null)
                 return;
 
-            // 定时器更新数据
+            // Timer update data
             dataTimer = new DispatcherTimer();
-            dataTimer.Interval = TimeSpan.FromMilliseconds(50);  // 实时更新
+            dataTimer.Interval = TimeSpan.FromMilliseconds(50);
             dataTimer.Tick += (sender, args) =>
             {
-                double[] newSpectrumData = _visualizer.GetSpectrumData();         // 从可视化器中获取频谱数据
-                newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // 平滑频谱数据
+                double[] newSpectrumData = _visualizer.GetSpectrumData();         // Retrieve spectrum data from the visualizer
+                newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // Smooth spectrum data
 
                 _spectrumData = newSpectrumData;
             };
             dataTimer.Start();
+
+            RenderInterval = 50;
 
             cancellation = new CancellationTokenSource();
             renderTask = RenderLoopAsync(cancellation.Token);
