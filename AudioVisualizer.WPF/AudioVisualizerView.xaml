@@ -4,27 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AudioVisualizer.WPF"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded" Background="Black">
+             mc:Ignorable="d"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Background="Transparent" MinWidth="200" MinHeight="200" >
     <Grid>
-        <Ellipse x:Name="RippleEffect" Grid.Row="0" Grid.Column="0" Width="100" Height="100" Fill="Transparent" 
-         Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Ellipse.RenderTransform>
-                <ScaleTransform x:Name="RippleScale" ScaleX="1" ScaleY="1" CenterX="50" CenterY="50"/>
-            </Ellipse.RenderTransform>
-        </Ellipse>
-        <local:CircularWaveformCanvas x:Name="cycleWaveformCanvas" 
-                              Background="Black"
-                              HorizontalAlignment="Stretch" 
-                              VerticalAlignment="Stretch" 
-                              SizeChanged="cycleWaveformCanvas_SizeChanged" 
-                              />
-        <local:SpectrumBarFormCanvas x:Name="spectrumBarFormCanvas" 
-                      Background="Black"
-                      HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Stretch" SizeChanged="spectrumBarFormCanvas_SizeChanged" 
-                                     
-                      />
-
+        
     </Grid>
 </UserControl>

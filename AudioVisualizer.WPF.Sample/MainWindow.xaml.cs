@@ -1,16 +1,6 @@
-﻿using AudioVisualizer.Core;
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace AudioVisualizer.WPF.Sample
 {
@@ -46,9 +36,9 @@ namespace AudioVisualizer.WPF.Sample
 
             audioVisualizerView.AudioSampleRate = capture.WaveFormat.SampleRate;
             audioVisualizerView.Scale = 5;
-            audioVisualizerView.VisualEffict = Core.VisualEffect.SpectrumCycle;
+            audioVisualizerView.VisualEffect = Core.Enum.VisualEffect.SpectrumCycle;
 
-            audioVisualizerView.Start();
+            audioVisualizerView.StartRenderAsync();
             capture.StartRecording();
             speechWaveIn.StartRecording();
             
