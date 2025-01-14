@@ -20,6 +20,7 @@ using System.Windows.Shapes;
 using AudioVisualizer.WPF.Utilities;
 using System.Windows.Threading;
 using AudioVisualizer.Core.Enum;
+using System.Diagnostics;
 
 namespace AudioVisualizer.WPF
 {
@@ -68,7 +69,7 @@ namespace AudioVisualizer.WPF
 
         public int AudioSampleRate { get; set; } = 8192;
 
-        public float Scale { get; set; } = 1;
+        public float Scale { get; set; } = 15;
 
         public VisualEffect VisualEffect { get; set; }
 
@@ -299,9 +300,9 @@ namespace AudioVisualizer.WPF
         protected override void OnRender(DrawingContext drawingContext)
         {
             base.OnRender(drawingContext);
-
-            // »æÖÆºÚÉ«±³¾°
+            
             drawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, ActualWidth, ActualHeight));
+            
 
             if (_spectrumData == null)
                 return;
@@ -561,6 +562,10 @@ namespace AudioVisualizer.WPF
 
         public void StartRenderAsync()
         {
+            if (IsInDesignMode())
+            {
+                return;
+            }
             if (renderTask != null)
                 return;
 
@@ -606,6 +611,22 @@ namespace AudioVisualizer.WPF
 
             color1 = GetColorFromRate(rate);
             color2 = GetColorFromRate(rate + ColorGradientOffset);
+        }
+
+        private static bool IsInDesignMode()
+        {
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return true;
+            }
+
+            string processName = Process.GetCurrentProcess().ProcessName.ToLower();
+            if (processName.Contains("devenv") || processName.Contains("blend"))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 

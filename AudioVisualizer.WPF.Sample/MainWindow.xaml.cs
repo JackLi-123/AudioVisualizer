@@ -35,7 +35,7 @@ namespace AudioVisualizer.WPF.Sample
 
 
             audioVisualizerView.AudioSampleRate = capture.WaveFormat.SampleRate;
-            audioVisualizerView.Scale = 5;
+            audioVisualizerView.Scale = 15;
             audioVisualizerView.VisualEffect = Core.Enum.VisualEffect.SpectrumCycle;
 
             audioVisualizerView.StartRenderAsync();
