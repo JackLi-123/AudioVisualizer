@@ -39,7 +39,7 @@ namespace AudioVisualizer.WinForm
         }
         public int AudioSampleRate { get; set; } = 8192;
 
-        public float Scale { get; set; } = 1;
+        public float Scale { get; set; } = 5;
 
         public int RenderInterval
         {
@@ -193,18 +193,14 @@ namespace AudioVisualizer.WinForm
                     break;
                 case VisualEffect.SpectrumCycle:
                     DrawGradientCircle(g, color1, color2, spectrumData, spectrumData.Length, this.Width / 2, this.Height / 2, MathF.Min(this.Width, this.Height) / 4 + extraScale * bassScale, 1, rotation, this.Width / 2 * 10 * Scale);
-                    DrawCycle(g, color1, color2, this.Width, this.Height);
                     break;
-                default:
-                    // TODO外框效果
+                case VisualEffect.Border:
                     DrawGradientBorder(g, Color.FromArgb(0, color1), color2, border, bassScale * this.Scale, this.Width / 10);
                     break;
+                default:
+                    DrawGradientBar(g, color1, color2, spectrumData, spectrumData.Length, this.Width, 0, this.Height / 2, 3, -this.Height * 10 * this.Scale);
+                    break;
             }
-
-
-
-
-
 
             buffer.Render();
 
@@ -457,7 +453,7 @@ namespace AudioVisualizer.WinForm
                 catch { }
             }
 
-            // TODO Draw cycle
+            DrawCycle(g, inner, outer, this.Width, this.Height);
 
         }
 

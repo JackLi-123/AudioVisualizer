@@ -69,7 +69,7 @@ namespace AudioVisualizer.WPF
 
         public int AudioSampleRate { get; set; } = 8192;
 
-        public float Scale { get; set; } = 15;
+        public float Scale { get; set; } = 5;
 
         public VisualEffect VisualEffect { get; set; }
 
@@ -300,9 +300,9 @@ namespace AudioVisualizer.WPF
         protected override void OnRender(DrawingContext drawingContext)
         {
             base.OnRender(drawingContext);
-            
+
             drawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, ActualWidth, ActualHeight));
-            
+
 
             if (_spectrumData == null)
                 return;
@@ -311,28 +311,22 @@ namespace AudioVisualizer.WPF
 
             switch (VisualEffect)
             {
+                case VisualEffect.Oscilloscope:
+                    DrawCurve(drawingContext, _visualizer.SampleData);
+                    break;
                 case VisualEffect.SpectrumCycle:
                     DrawCircleStrips(drawingContext, _spectrumData, elapsedTime.TotalSeconds);
                     break;
-
                 case VisualEffect.SpectrumBar:
                     DrawStrips(drawingContext, _spectrumData);
                     break;
+                case VisualEffect.Border:
+                    DrawBorder(drawingContext, _spectrumData);
+                    break;
                 default:
+                    DrawStrips(drawingContext, _spectrumData);
                     break;
             }
-
-            //if (EnableCurveRendering)
-            //    DrawCurve(drawingContext, _visualizer.SampleData);
-
-            //if (EnableStripsRendering)
-            //    DrawStrips(drawingContext, _spectrumData);
-
-            //if (EnableBorderRendering)
-            //    DrawBorder(drawingContext, _spectrumData);
-
-            //if (EnableCircleStripsRendering)
-            //    DrawCircleStrips(drawingContext, _spectrumData, elapsedTime.TotalSeconds);
         }
 
         private void DrawStrips(DrawingContext drawingContext, double[] spectrumData)
@@ -350,7 +344,7 @@ namespace AudioVisualizer.WPF
             int end = stripCount - 1;
             for (int i = 0; i < stripCount; i++)
             {
-                double value = spectrumData[i * spectrumData.Length / stripCount] * Scale;
+                double value = spectrumData[i * spectrumData.Length / stripCount] * Scale * 5;
                 double y = ActualHeight / 2 * (1 - value * 10);
                 double x = ((double)i / end) * ActualWidth;
 
@@ -437,7 +431,7 @@ namespace AudioVisualizer.WPF
             for (int i = 0; i < stripCount; i++)
             {
                 double x = blockWidth * i + rotationAngle;
-                double y = spectrumData[i * spectrumData.Length / stripCount] * scale * Scale;
+                double y = (spectrumData[i * spectrumData.Length / stripCount] * scale * Scale) * 5;
                 points[i] = new Point(x, y);
             }
 
@@ -501,7 +495,7 @@ namespace AudioVisualizer.WPF
         private void DrawCurve(DrawingContext drawingContext, double[] spectrumData)
         {
             double yBase = ActualHeight / 2;
-            double scale = Math.Min(ActualHeight / 10, 100);
+            double scale = Math.Min(ActualHeight / 10, 100) * Scale;
             double drawingWidth = ActualWidth;
 
             Point[] points = new Point[spectrumData.Length];

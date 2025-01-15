@@ -33,7 +33,7 @@ namespace AudioVisualizer.WinForm.Sample
 
             audioVisualizer1.AudioSampleRate = capture.WaveFormat.SampleRate;
             audioVisualizer1.Scale = 5;
-            audioVisualizer1.VisualEffect = VisualEffect.SpectrumCycle;
+            audioVisualizer1.VisualEffect = VisualEffect.SpectrumBar;
 
             audioVisualizer1.Start();
             capture.StartRecording();
