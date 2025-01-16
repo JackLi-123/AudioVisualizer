@@ -32,7 +32,6 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="StarFlare.AudioVisualizer.Core" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>

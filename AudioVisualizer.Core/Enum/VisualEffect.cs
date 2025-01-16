@@ -11,5 +11,6 @@ namespace AudioVisualizer.Core.Enum
         Oscilloscope,
         SpectrumBar,
         SpectrumCycle,
+        Border
     }
 }
