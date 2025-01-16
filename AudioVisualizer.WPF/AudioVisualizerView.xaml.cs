@@ -388,7 +388,7 @@ namespace AudioVisualizer.WPF
         {
             double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, _capture.WaveFormat.SampleRate, 250);
             double bass = bassArea.Average() * 100;
-            double thickness = ActualWidth / 10 * bass * Scale;
+            double thickness = ActualWidth / 10 * bass * Scale * 15;
 
             if (thickness <= 0)
                 return;
