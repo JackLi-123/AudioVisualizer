@@ -38,7 +38,7 @@ namespace AudioVisualizer.WPF.Sample
             audioVisualizerView.Scale = 5;
             audioVisualizerView.VisualEffect = Core.Enum.VisualEffect.SpectrumBar;
 
-            audioVisualizerView.StartRenderAsync();
+            audioVisualizerView.Start();
             capture.StartRecording();
             speechWaveIn.StartRecording();
             
