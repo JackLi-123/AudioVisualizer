@@ -12,7 +12,7 @@
     <Company>StarFlare</Company>
     <Description></Description>
 
-    <Copyright>Copyright © StarFlare 2024</Copyright>
+    <Copyright>Copyright StarFlare 2024</Copyright>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>..\NuGetPackages</PackageOutputPath>
