@@ -27,20 +27,52 @@ namespace AudioVisualizer.WPF
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class AudioVisualizerView : UserControl
+    public partial class AudioVisualizerView : UserControl, IVisualizerControl, IDisposable
     {
+        private static readonly Color[] allColors = ColorUtils.GetAllHsvColors();
+
+        private Visualizer _visualizer;
+
+        private bool started = false;
+        //private WasapiCapture _capture;
+
+        private DateTime _startTime;
+        private double[]? _spectrumData;
+        private ArrayPool<double> _doubleArrayPool;
+        private ArrayPool<Point> _pointArrayPool;
+        private DispatcherTimer dataTimer;
+        private Task? renderTask;
+        private CancellationTokenSource? cancellation;
+
+        public static readonly DependencyProperty EnableCurveProperty = DependencyProperty.Register(nameof(EnableCurveRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableStripsProperty = DependencyProperty.Register(nameof(EnableStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableBorderDrawingProperty = DependencyProperty.Register(nameof(EnableBorderRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        public static readonly DependencyProperty EnableCircleStripsRenderingProperty = DependencyProperty.Register(nameof(EnableCircleStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+
+        public static readonly DependencyProperty SpectrumSizeProperty = DependencyProperty.Register(nameof(SpectrumSize), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(512, SpectrumSizeChanged));
+        //public static readonly DependencyProperty SpectrumSampleRateProperty = DependencyProperty.Register(nameof(SpectrumSampleRate), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(8192, SpectrumSampleRateChanged));
+        public static readonly DependencyProperty SpectrumBlurryProperty = DependencyProperty.Register(nameof(SpectrumBlurry), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(0));
+        public static readonly DependencyProperty SpectrumFactorProperty = DependencyProperty.Register(nameof(SpectrumFactor), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(1.0));
+        public static readonly DependencyPropertyKey IsRenderingProperty = DependencyProperty.RegisterReadOnly(nameof(IsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false));
+        public static readonly DependencyProperty EnableRenderingProperty = DependencyProperty.Register(nameof(RenderEnabled), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false, RenderEnableChanged));
+        public static readonly DependencyProperty RenderIntervalProperty = DependencyProperty.Register(nameof(RenderInterval), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(10));
+        public static readonly DependencyProperty ColorTransitionTimeProperty = DependencyProperty.Register(nameof(ColorTransitionTime), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(30f));
+        public static readonly DependencyProperty ColorGradientOffsetProperty = DependencyProperty.Register(nameof(ColorGradientOffset), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.1f));
+
+        public static readonly DependencyProperty StripCountProperty = DependencyProperty.Register(nameof(StripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        public static readonly DependencyProperty StripSpacingProperty = DependencyProperty.Register(nameof(StripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        public static readonly DependencyProperty CircleStripCountProperty = DependencyProperty.Register(nameof(CircleStripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        public static readonly DependencyProperty CircleStripSpacingProperty = DependencyProperty.Register(nameof(CircleStripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        public static readonly DependencyProperty CircleStripRotationSpeedProperty = DependencyProperty.Register(nameof(CircleStripRotationSpeed), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(.5));
+
         public AudioVisualizerView()
         {
             InitializeComponent();
 
-            _capture = new WasapiLoopbackCapture();
             _visualizer = new Visualizer(512);
             _startTime = DateTime.Now;
             _doubleArrayPool = ArrayPool<double>.Create();
             _pointArrayPool = ArrayPool<Point>.Create();
-
-            _capture.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(8192, 1);
-            _capture.DataAvailable += CaptureDataAvailable;
         }
 
         static AudioVisualizerView()
@@ -50,22 +82,9 @@ namespace AudioVisualizer.WPF
 
         ~AudioVisualizerView()
         {
-            if (_capture.CaptureState == CaptureState.Capturing)
-                _capture.StopRecording();
+            Stop();
         }
 
-        private bool started = false;
-        WasapiCapture _capture;
-        Visualizer _visualizer;
-        DateTime _startTime;
-        double[]? _spectrumData;
-        ArrayPool<double> _doubleArrayPool;
-        ArrayPool<Point> _pointArrayPool;
-
-        private DispatcherTimer dataTimer;
-
-        static readonly Color[] allColors =
-            ColorUtils.GetAllHsvColors();
 
         public int AudioSampleRate { get; set; } = 8192;
 
@@ -73,22 +92,68 @@ namespace AudioVisualizer.WPF
 
         public VisualEffect VisualEffect { get; set; }
 
+        public void Start()
+        {
+            if (IsInDesignMode())
+            {
+                return;
+            }
+            if (renderTask != null)
+                return;
+
+            // Timer update data
+            dataTimer = new DispatcherTimer();
+            dataTimer.Interval = TimeSpan.FromMilliseconds(50);
+            dataTimer.Tick += (sender, args) =>
+            {
+                double[] newSpectrumData = _visualizer.GetSpectrumData();         // Retrieve spectrum data from the visualizer
+                newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // Smooth spectrum data
+
+                _spectrumData = newSpectrumData;
+            };
+            dataTimer.Start();
+
+            RenderInterval = 50;
+
+            cancellation = new CancellationTokenSource();
+            renderTask = RenderLoopAsync(cancellation.Token);
+        }
+
+        public void Stop()
+        {
+            if (!started)
+            {
+                started = false;
+
+                dataTimer?.Stop();
+
+                cancellation?.Cancel();
+                renderTask = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+
         public void PushSampleData(double[] waveData)
         {
             _visualizer.PushSampleData(waveData);
         }
 
+        #region Private Properties
         private int SpectrumSize
         {
             get { return (int)GetValue(SpectrumSizeProperty); }
             set { SetValue(SpectrumSizeProperty, value); }
         }
 
-        private int SpectrumSampleRate
-        {
-            get { return (int)GetValue(SpectrumSampleRateProperty); }
-            set { SetValue(SpectrumSampleRateProperty, value); }
-        }
+        //private int SpectrumSampleRate
+        //{
+        //    get { return (int)GetValue(SpectrumSampleRateProperty); }
+        //    set { SetValue(SpectrumSampleRateProperty, value); }
+        //}
 
         private int SpectrumBlurry
         {
@@ -101,17 +166,6 @@ namespace AudioVisualizer.WPF
             get { return (double)GetValue(SpectrumFactorProperty); }
             set { SetValue(SpectrumFactorProperty, value); }
         }
-
-        public void Stop()
-        {
-            if (!started)
-            {
-                started = false;
-
-                dataTimer?.Stop();
-            }
-        }
-
 
         public bool IsRendering
         {
@@ -171,8 +225,7 @@ namespace AudioVisualizer.WPF
             get { return (double)GetValue(CircleStripRotationSpeedProperty); }
             set { SetValue(CircleStripRotationSpeedProperty, value); }
         }
-
-
+         
         private bool EnableCurveRendering
         {
             get { return (bool)GetValue(EnableCurveProperty); }
@@ -196,54 +249,9 @@ namespace AudioVisualizer.WPF
             get { return (bool)GetValue(EnableCircleStripsRenderingProperty); }
             set { SetValue(EnableCircleStripsRenderingProperty, value); }
         }
+#endregion
 
-        public static readonly DependencyProperty EnableCurveProperty =
-            DependencyProperty.Register(nameof(EnableCurveRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableStripsProperty =
-            DependencyProperty.Register(nameof(EnableStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableBorderDrawingProperty =
-            DependencyProperty.Register(nameof(EnableBorderRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableCircleStripsRenderingProperty =
-            DependencyProperty.Register(nameof(EnableCircleStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-
-
-
-
-
-        public static readonly DependencyProperty SpectrumSizeProperty =
-            DependencyProperty.Register(nameof(SpectrumSize), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(512, SpectrumSizeChanged));
-        public static readonly DependencyProperty SpectrumSampleRateProperty =
-            DependencyProperty.Register(nameof(SpectrumSampleRate), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(8192, SpectrumSampleRateChanged));
-        public static readonly DependencyProperty SpectrumBlurryProperty =
-            DependencyProperty.Register(nameof(SpectrumBlurry), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(0));
-        public static readonly DependencyProperty SpectrumFactorProperty =
-            DependencyProperty.Register(nameof(SpectrumFactor), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(1.0));
-        public static readonly DependencyPropertyKey IsRenderingProperty =
-            DependencyProperty.RegisterReadOnly(nameof(IsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false));
-        public static readonly DependencyProperty EnableRenderingProperty =
-            DependencyProperty.Register(nameof(RenderEnabled), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false, RenderEnableChanged));
-        public static readonly DependencyProperty RenderIntervalProperty =
-            DependencyProperty.Register(nameof(RenderInterval), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(10));
-        public static readonly DependencyProperty ColorTransitionTimeProperty =
-            DependencyProperty.Register(nameof(ColorTransitionTime), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(30f));
-        public static readonly DependencyProperty ColorGradientOffsetProperty =
-            DependencyProperty.Register(nameof(ColorGradientOffset), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.1f));
-
-
-
-        public static readonly DependencyProperty StripCountProperty =
-            DependencyProperty.Register(nameof(StripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
-        public static readonly DependencyProperty StripSpacingProperty =
-            DependencyProperty.Register(nameof(StripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
-        public static readonly DependencyProperty CircleStripCountProperty =
-            DependencyProperty.Register(nameof(CircleStripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
-        public static readonly DependencyProperty CircleStripSpacingProperty =
-            DependencyProperty.Register(nameof(CircleStripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
-        public static readonly DependencyProperty CircleStripRotationSpeedProperty =
-            DependencyProperty.Register(nameof(CircleStripRotationSpeed), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(.5));
-
-
-
+        
         private static void SpectrumSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not AudioVisualizerView AudioVisualizerView ||
@@ -256,17 +264,17 @@ namespace AudioVisualizer.WPF
             AudioVisualizerView._visualizer.Size = spectrumSize * 2;
         }
 
-        private static void SpectrumSampleRateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is not AudioVisualizerView AudioVisualizerView ||
-                e.NewValue is not int spectrumSampleRate)
-                return;
+        //private static void SpectrumSampleRateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        //{
+        //    if (d is not AudioVisualizerView AudioVisualizerView ||
+        //        e.NewValue is not int spectrumSampleRate)
+        //        return;
 
-            if (AudioVisualizerView.IsRendering)
-                throw new InvalidOperationException($"{nameof(SpectrumSampleRate)} on only be set while not rendering");
+        //    if (AudioVisualizerView.IsRendering)
+        //        throw new InvalidOperationException($"{nameof(SpectrumSampleRate)} on only be set while not rendering");
 
-            AudioVisualizerView._capture.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(spectrumSampleRate, 1);
-        }
+        //    AudioVisualizerView._capture.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(spectrumSampleRate, 1);
+        //}
 
         private static void RenderEnableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -279,9 +287,9 @@ namespace AudioVisualizer.WPF
 #endif
 
             if (value)
-                AudioVisualizerView.StartRenderAsync();
+                AudioVisualizerView.Start();
             else
-                AudioVisualizerView.StopRendering();
+                AudioVisualizerView.Stop();
         }
 
         private void CaptureDataAvailable(object? sender, WaveInEventArgs e)
@@ -386,7 +394,7 @@ namespace AudioVisualizer.WPF
 
         private void DrawBorder(DrawingContext drawingContext, double[] spectrumData)
         {
-            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, _capture.WaveFormat.SampleRate, 250);
+            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, AudioSampleRate, 250);
             double bass = bassArea.Average() * 100;
             double thickness = ActualWidth / 10 * bass * Scale * 15;
 
@@ -411,7 +419,7 @@ namespace AudioVisualizer.WPF
 
         private void DrawCircleStrips(DrawingContext drawingContext, double[] spectrumData, double time)
         {
-            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, _capture.WaveFormat.SampleRate, 250);
+            double[] bassArea = Visualizer.TakeSpectrumOfFrequency(spectrumData, AudioSampleRate, 250);
             double bassScale = bassArea.Average() * 100;
             double extraScale = Math.Min(ActualWidth, ActualHeight) / 6;
 
@@ -522,11 +530,10 @@ namespace AudioVisualizer.WPF
             drawingContext.DrawGeometry(null, new Pen(Brushes.Cyan, 1), pathGeometry);
         }
 
-
         private async Task RenderLoopAsync(CancellationToken token)
         {
             IsRendering = true;
-            _capture.StartRecording();
+            //_capture.StartRecording();
 
             while (true)
             {
@@ -547,44 +554,8 @@ namespace AudioVisualizer.WPF
                 await Task.Delay(RenderInterval);
             }
 
-            _capture.StopRecording();
+            //_capture.StopRecording();
             IsRendering = false;
-        }
-
-        Task? renderTask;
-        CancellationTokenSource? cancellation;
-
-        public void StartRenderAsync()
-        {
-            if (IsInDesignMode())
-            {
-                return;
-            }
-            if (renderTask != null)
-                return;
-
-            // Timer update data
-            dataTimer = new DispatcherTimer();
-            dataTimer.Interval = TimeSpan.FromMilliseconds(50);
-            dataTimer.Tick += (sender, args) =>
-            {
-                double[] newSpectrumData = _visualizer.GetSpectrumData();         // Retrieve spectrum data from the visualizer
-                newSpectrumData = Visualizer.GetBlurry(newSpectrumData, 2);                // Smooth spectrum data
-
-                _spectrumData = newSpectrumData;
-            };
-            dataTimer.Start();
-
-            RenderInterval = 50;
-
-            cancellation = new CancellationTokenSource();
-            renderTask = RenderLoopAsync(cancellation.Token);
-        }
-
-        private void StopRendering()
-        {
-            cancellation?.Cancel();
-            renderTask = null;
         }
 
         private Color GetColorFromRate(double rate)

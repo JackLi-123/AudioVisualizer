@@ -17,7 +17,7 @@ using System.Windows.Forms;
 
 namespace AudioVisualizer.WinForm
 {
-    public partial class AudioVisualizerView : UserControl
+    public partial class AudioVisualizerView : UserControl , IVisualizerControl
     {
         private bool started = false;
         private Timer dataTimer = new Timer();
