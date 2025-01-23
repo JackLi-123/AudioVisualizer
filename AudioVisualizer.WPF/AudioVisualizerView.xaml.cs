@@ -44,26 +44,26 @@ namespace AudioVisualizer.WPF
         private Task? renderTask;
         private CancellationTokenSource? cancellation;
 
-        public static readonly DependencyProperty EnableCurveProperty = DependencyProperty.Register(nameof(EnableCurveRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableStripsProperty = DependencyProperty.Register(nameof(EnableStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableBorderDrawingProperty = DependencyProperty.Register(nameof(EnableBorderRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
-        public static readonly DependencyProperty EnableCircleStripsRenderingProperty = DependencyProperty.Register(nameof(EnableCircleStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        private static readonly DependencyProperty EnableCurveProperty = DependencyProperty.Register(nameof(EnableCurveRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        private static readonly DependencyProperty EnableStripsProperty = DependencyProperty.Register(nameof(EnableStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        private static readonly DependencyProperty EnableBorderDrawingProperty = DependencyProperty.Register(nameof(EnableBorderRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
+        private static readonly DependencyProperty EnableCircleStripsRenderingProperty = DependencyProperty.Register(nameof(EnableCircleStripsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(true));
 
-        public static readonly DependencyProperty SpectrumSizeProperty = DependencyProperty.Register(nameof(SpectrumSize), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(512, SpectrumSizeChanged));
+        private static readonly DependencyProperty SpectrumSizeProperty = DependencyProperty.Register(nameof(SpectrumSize), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(512, SpectrumSizeChanged));
         //public static readonly DependencyProperty SpectrumSampleRateProperty = DependencyProperty.Register(nameof(SpectrumSampleRate), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(8192, SpectrumSampleRateChanged));
-        public static readonly DependencyProperty SpectrumBlurryProperty = DependencyProperty.Register(nameof(SpectrumBlurry), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(0));
-        public static readonly DependencyProperty SpectrumFactorProperty = DependencyProperty.Register(nameof(SpectrumFactor), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(1.0));
-        public static readonly DependencyPropertyKey IsRenderingProperty = DependencyProperty.RegisterReadOnly(nameof(IsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false));
-        public static readonly DependencyProperty EnableRenderingProperty = DependencyProperty.Register(nameof(RenderEnabled), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false, RenderEnableChanged));
-        public static readonly DependencyProperty RenderIntervalProperty = DependencyProperty.Register(nameof(RenderInterval), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(10));
-        public static readonly DependencyProperty ColorTransitionTimeProperty = DependencyProperty.Register(nameof(ColorTransitionTime), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(30f));
-        public static readonly DependencyProperty ColorGradientOffsetProperty = DependencyProperty.Register(nameof(ColorGradientOffset), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.1f));
+        private static readonly DependencyProperty SpectrumBlurryProperty = DependencyProperty.Register(nameof(SpectrumBlurry), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(0));
+        private static readonly DependencyProperty SpectrumFactorProperty = DependencyProperty.Register(nameof(SpectrumFactor), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(1.0));
+        private static readonly DependencyPropertyKey IsRenderingProperty = DependencyProperty.RegisterReadOnly(nameof(IsRendering), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false));
+        private static readonly DependencyProperty EnableRenderingProperty = DependencyProperty.Register(nameof(RenderEnabled), typeof(bool), typeof(AudioVisualizerView), new PropertyMetadata(false, RenderEnableChanged));
+        private static readonly DependencyProperty RenderIntervalProperty = DependencyProperty.Register(nameof(RenderInterval), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(10));
+        private static readonly DependencyProperty ColorTransitionTimeProperty = DependencyProperty.Register(nameof(ColorTransitionTime), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(30f));
+        private static readonly DependencyProperty ColorGradientOffsetProperty = DependencyProperty.Register(nameof(ColorGradientOffset), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.1f));
 
-        public static readonly DependencyProperty StripCountProperty = DependencyProperty.Register(nameof(StripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
-        public static readonly DependencyProperty StripSpacingProperty = DependencyProperty.Register(nameof(StripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
-        public static readonly DependencyProperty CircleStripCountProperty = DependencyProperty.Register(nameof(CircleStripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
-        public static readonly DependencyProperty CircleStripSpacingProperty = DependencyProperty.Register(nameof(CircleStripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
-        public static readonly DependencyProperty CircleStripRotationSpeedProperty = DependencyProperty.Register(nameof(CircleStripRotationSpeed), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(.5));
+        private static readonly DependencyProperty StripCountProperty = DependencyProperty.Register(nameof(StripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        private static readonly DependencyProperty StripSpacingProperty = DependencyProperty.Register(nameof(StripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        private static readonly DependencyProperty CircleStripCountProperty = DependencyProperty.Register(nameof(CircleStripCount), typeof(int), typeof(AudioVisualizerView), new PropertyMetadata(128));
+        private static readonly DependencyProperty CircleStripSpacingProperty = DependencyProperty.Register(nameof(CircleStripSpacing), typeof(float), typeof(AudioVisualizerView), new PropertyMetadata(.2f));
+        private static readonly DependencyProperty CircleStripRotationSpeedProperty = DependencyProperty.Register(nameof(CircleStripRotationSpeed), typeof(double), typeof(AudioVisualizerView), new PropertyMetadata(.5));
 
         public AudioVisualizerView()
         {
